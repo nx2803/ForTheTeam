@@ -15,7 +15,7 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [matches, setMatches] = useState<any[]>([]);
-    const { mainTeam, themeColors } = useTheme();
+    const { mainTeam, setMainTeam, themeColors } = useTheme();
     const { user, isLoggedIn } = useAuth();
 
     // API 호출: 경기 데이터 가져오기
@@ -183,7 +183,11 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                             {myTeams.map(team => (
                                 <button
                                     key={team.id}
-                                    onClick={() => setSelectedTeamId(selectedTeamId === team.id ? null : team.id)}
+                                    onClick={() => {
+                                        const isDeselecting = selectedTeamId === team.id;
+                                        setSelectedTeamId(isDeselecting ? null : team.id);
+                                        setMainTeam(isDeselecting ? null : team);
+                                    }}
                                     className={`
                                         w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
                                         ${selectedTeamId === team.id ? 'scale-110 bg-white/10' : 'hover:scale-110 hover:bg-white/5 opacity-40 hover:opacity-100'}

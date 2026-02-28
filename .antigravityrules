@@ -1,0 +1,24 @@
+# [Context & Stack]
+- Framework: NestJS (TypeScript)
+- Database: Prisma (PostgreSQL on Supabase)
+- Key Modules: HttpModule (Axios), ConfigModule, Passport/JWT
+- Domain: Sports Data Aggregator (Football, NBA, NFL, NHL, MLB, KBO, F1, LCK)
+
+# [Coding Standards]
+- Always use DTOs for request validation and Swagger documentation.
+- Use 'PrismaService' for all DB interactions; do not use raw SQL unless explicitly asked.
+- Follow the existing module structure (Controller -> Service -> Provider/External API).
+- Handle external API errors with a dedicated Logger (e.g., `this.logger.error`).
+
+# [Quota & Efficiency Optimization] - 쿼터 절약을 위한 핵심 규칙
+- **No Over-Analysis**: Do not re-scan the entire project unless the task requires cross-module changes. Focus on the specified file only.
+- **Terminal Usage**: Do not run `npm run start` or heavy build commands automatically. Only run lint or specific test commands when asked.
+- **Selective Sync**: When debugging 'SyncService', focus on a single league/sport instead of running a full sync.
+
+# [Specific Rules for Sports API]
+- **API Matching**: Always match `external_api_id` with existing team data using prefixes (e.g., KBO_XXX, SA_XXX).
+- **Error Handling**: For KBO or other sensitive APIs, always implement a 400/403 error bypass logic to prevent the entire Sync process from failing.
+- **Logo Safety**: Use verified, transparent SVG/PNG URLs only. Avoid wikimedia/football-data.org direct links if they cause 403/CORS issues.
+
+# [Language]
+- Respond in Korean for explanations, but keep code comments and technical terms in English/Korean as per current style.

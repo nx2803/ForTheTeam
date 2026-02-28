@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 import { getAllTeams, TeamResponse } from '@/lib/teamsApi';
 
@@ -84,6 +84,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                         logoUrl: team.logo_url, // URL 따로 저장
                         mainColor: team.primary_color || '#FFFFFF',
                         subColor: team.secondary_color || '#000000',
+                        leagueId: team.league_id,
                     });
                 });
 
@@ -288,7 +289,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                                             style={{ backgroundColor: themeColors.primaryText }}
                                                         >
                                                             <svg
-                                                                className="w-4 h-4 stroke-current stroke-[3]"
+                                                                className="w-4 h-4 stroke-current stroke-3"
                                                                 viewBox="0 0 24 24"
                                                                 fill="none"
                                                                 style={{ color: themeColors.primary }}

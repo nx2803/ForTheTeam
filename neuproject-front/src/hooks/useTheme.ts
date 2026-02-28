@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 
 interface ThemeColors {
     primary: string;

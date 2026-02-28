@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 
 interface SettingsModalProps {

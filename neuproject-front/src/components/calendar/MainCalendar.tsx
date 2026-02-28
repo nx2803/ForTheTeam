@@ -1,22 +1,24 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Team, SPORTS_DATA } from '@/data/sportsData';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 
 interface MainCalendarProps {
     myTeams: Team[];
+    setMyTeams?: (teams: Team[]) => void;
 }
 
-export default function MainCalendar({ myTeams }: MainCalendarProps) {
-    const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+export default function MainCalendar({ myTeams, setMyTeams }: MainCalendarProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [matches, setMatches] = useState<any[]>([]);
     const { mainTeam, setMainTeam, themeColors } = useTheme();
     const { user, isLoggedIn } = useAuth();
+
+    const selectedTeamId = mainTeam?.id || null;
 
     // API 호출: 경기 데이터 가져오기
     const fetchMatches = async () => {
@@ -31,20 +33,49 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
             const data = await res.json();
 
             // API 데이터를 CalendarEvent 형식에 맞게 변환
-            const formatted = data.map((m: any) => ({
-                id: m.id,
-                teamId: m.home_team_id || '',
-                opponent: m.away_team_id ? m.away_team?.name : m.away_team_name,
-                home: true,
-                date: m.match_at.split('T')[0],
-                time: m.match_at.split('T')[1].slice(0, 5),
-                type: 'match',
-                score: m.status === 'finished' ? `${m.home_score}:${m.away_score}` : null,
-                // 프론트엔드 렌더링을 위한 추가 정보
-                homeTeam: m.home_team,
-                awayTeam: m.away_team,
-                league: m.leagues
-            }));
+            const formatted = data.map((m: any) => {
+                const isRace = !m.home_team_id && !m.away_team_id;
+
+                // 타임존 처리: match_at이 UTC/ISO 형식이면 로컬 시간으로 변환
+                // 만약 m.match_at이 "2026-03-08T04:00:00.000+00" 처럼 오면 Date 객체로 변환 시 로컬 시간이 됨
+                // 만약 타임존 정보가 없는 일반 문자열이면 그대로 사용 (사용자가 수동 입력한 경우 등)
+                const matchDate = new Date(m.match_at);
+                const isUTC = m.match_at.includes('Z') || m.match_at.includes('+');
+
+                let dateStr, timeStr;
+
+                if (isUTC && !isNaN(matchDate.getTime())) {
+                    // UTC 형식이면 로컬 날짜/시간 추출
+                    const year = matchDate.getFullYear();
+                    const month = String(matchDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(matchDate.getDate()).padStart(2, '0');
+                    dateStr = `${year}-${month}-${day}`;
+                    timeStr = matchDate.toTimeString().slice(0, 5);
+                } else {
+                    // 이미 로컬 시간이거나 형식이 다르면 문자열 쪼개기 시도
+                    const parts = m.match_at.split('T');
+                    dateStr = parts[0];
+                    timeStr = parts[1] ? parts[1].slice(0, 5) : '00:00';
+                }
+
+                return {
+                    id: m.id,
+                    teamId: m.home_team_id || '',
+                    opponent: isRace ? m.home_team_name : (m.away_team_id ? m.away_team?.name : m.away_team_name),
+                    home: true,
+                    date: dateStr,
+                    time: timeStr,
+                    type: isRace ? 'race' : 'match',
+                    score: m.status === 'finished' ? `${m.home_score}:${m.away_score}` : null,
+                    // 프론트엔드 렌더링을 위한 추가 정보
+                    homeTeam: m.home_team,
+                    awayTeam: m.away_team,
+                    league: m.leagues,
+                    homeTeamName: m.home_team_name,
+                    awayTeamName: m.away_team_name,
+                    venue: m.venue
+                };
+            });
             setMatches(formatted);
         } catch (error) {
             console.error('Failed to fetch matches:', error);
@@ -65,10 +96,13 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
         // 1. Filter by 'My Teams' first (global filter)
         if (myTeams.length > 0) {
             const myTeamIds = myTeams.map(t => t.id);
-            events = events.filter(e =>
-                myTeamIds.includes(e.teamId) ||
-                (e.awayTeam && myTeamIds.includes(e.awayTeam.id))
-            );
+            events = events.filter(e => {
+                if (e.type === 'race') {
+                    // F1 등의 이벤트는 사용자가 해당 리그의 팀을 하나라도 팔로우 중이면 표시
+                    return myTeams.some((t: Team) => t.leagueId === e.league?.id);
+                }
+                return myTeamIds.includes(e.teamId) || (e.awayTeam && myTeamIds.includes(e.awayTeam.id));
+            });
         } else {
             // 팔로우하는 팀이 없으면 경기 일정 없음
             events = [];
@@ -76,14 +110,32 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
 
         // 2. Filter by 'Selected Active Team' (tab filter)
         if (selectedTeamId) {
-            events = events.filter(e => e.teamId === selectedTeamId || (e.awayTeam && e.awayTeam.id === selectedTeamId));
+            const activeT = myTeams.find(t => t.id === selectedTeamId);
+            events = events.filter(e => {
+                if (e.type === 'race') {
+                    // 특정 팀 선택 시, 그 팀이 속한 리그의 이벤트면 표시
+                    return activeT?.leagueId === e.league?.id;
+                }
+                return e.teamId === selectedTeamId || (e.awayTeam && e.awayTeam.id === selectedTeamId);
+            });
         }
 
-        return events;
+        // 3. Sort by date and time (Earliest first)
+        const sortedEvents = [...events].sort((a, b) => {
+            const timeA = new Date(`${a.date}T${a.time}`).getTime() || 0;
+            const timeB = new Date(`${b.date}T${b.time}`).getTime() || 0;
+
+            if (timeA !== timeB) {
+                return timeA - timeB;
+            }
+            // If time is same, fallback to secondary criteria if needed
+            return a.id.localeCompare(b.id);
+        });
+
+        return sortedEvents;
     }, [matches, myTeams, selectedTeamId]);
 
     const activeTeam = myTeams.find(t => t.id === selectedTeamId);
-    const accentColor = activeTeam?.mainColor || '#fff';
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -92,10 +144,15 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
     const getDDay = (dateStr: string) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const target = new Date(dateStr);
+        // Ensure the date string is parsed in local timezone context to match 'today'
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const target = new Date(y, m - 1, d);
         target.setHours(0, 0, 0, 0);
-        const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        const diff = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
         if (diff === 0) return "D-DAY";
+        if (diff < 0) return `D+${Math.abs(diff)}`;
         return `D-${diff}`;
     };
 
@@ -179,33 +236,68 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                         <span className="text-zinc-400 text-[10px] font-mono font-bold uppercase mr-auto tracking-widest hidden sm:block">
                             {selectedTeamId ? 'FILTER ON' : 'ALL TEAMS'}
                         </span>
-                        <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-50 md:max-w-none items-center h-full">
-                            {myTeams.map(team => (
-                                <button
-                                    key={team.id}
-                                    onClick={() => {
-                                        const isDeselecting = selectedTeamId === team.id;
-                                        setSelectedTeamId(isDeselecting ? null : team.id);
-                                        setMainTeam(isDeselecting ? null : team);
-                                    }}
-                                    className={`
-                                        w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
-                                        ${selectedTeamId === team.id ? 'scale-110 bg-white/10' : 'hover:scale-110 hover:bg-white/5 opacity-40 hover:opacity-100'}
-                                    `}
-                                    style={{ border: 'none' }}
-                                >
-                                    {team.logoUrl ? (
-                                        <img
-                                            src={team.logoUrl}
-                                            alt={team.name}
-                                            className="w-full h-full object-contain p-1"
-                                        />
-                                    ) : (
-                                        <span className="text-lg">{team.logo}</span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
+                        {setMyTeams ? (
+                            <Reorder.Group
+                                axis="x"
+                                values={myTeams}
+                                onReorder={setMyTeams}
+                                className="flex gap-1 overflow-x-auto no-scrollbar max-w-50 md:max-w-none items-center h-full"
+                            >
+                                {myTeams.map(team => (
+                                    <Reorder.Item
+                                        key={team.id}
+                                        value={team}
+                                        className={`
+                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden cursor-grab active:cursor-grabbing
+                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg' : 'hover:scale-110 hover:bg-white/5 opacity-40 hover:opacity-100'}
+                                        `}
+                                        style={{ border: 'none', y: 0 }} // y:0 prevents vertical jumping
+                                        onPointerDown={(e) => {
+                                            // Handle click logic manually for framer-motion Reorder support
+                                            const isDeselecting = selectedTeamId === team.id;
+                                            setMainTeam(isDeselecting ? null : team);
+                                        }}
+                                    >
+                                        {team.logoUrl ? (
+                                            <img
+                                                src={team.logoUrl}
+                                                alt={team.name}
+                                                className="w-full h-full object-contain p-1 pointer-events-none"
+                                            />
+                                        ) : (
+                                            <span className="text-lg pointer-events-none">{team.logo}</span>
+                                        )}
+                                    </Reorder.Item>
+                                ))}
+                            </Reorder.Group>
+                        ) : (
+                            <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-50 md:max-w-none items-center h-full">
+                                {myTeams.map(team => (
+                                    <button
+                                        key={team.id}
+                                        onClick={() => {
+                                            const isDeselecting = selectedTeamId === team.id;
+                                            setMainTeam(isDeselecting ? null : team);
+                                        }}
+                                        className={`
+                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
+                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10' : 'hover:scale-110 hover:bg-white/5 opacity-40 hover:opacity-100'}
+                                        `}
+                                        style={{ border: 'none' }}
+                                    >
+                                        {team.logoUrl ? (
+                                            <img
+                                                src={team.logoUrl}
+                                                alt={team.name}
+                                                className="w-full h-full object-contain p-1"
+                                            />
+                                        ) : (
+                                            <span className="text-lg">{team.logo}</span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -214,7 +306,7 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
             <div
                 className="flex-1 bg-[#18181b] border-2 relative shadow-2xl flex flex-col transition-colors duration-300 overflow-hidden"
                 style={{
-                    borderColor: selectedTeamId ? accentColor : themeColors.secondary
+                    borderColor: selectedTeamId ? themeColors.secondary : themeColors.secondary
                 }}
             >
                 {viewMode === 'calendar' ? (
@@ -263,7 +355,7 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                                         <div className="flex justify-between items-start px-1 pt-1">
                                             <span className={`font-oswald text-2xl md:text-xl font-black italic leading-none ${events.length > 0 || isToday ? 'text-white' : 'text-zinc-600'}`}>
                                                 {day}
-                                                {isToday && <span className="ml-2 text-[10px] font-mono tracking-widest uppercase" style={{ color: themeColors.secondary }}>TODAY</span>}
+                                                {isToday && <span className="ml-2 text-[10px] font-mono tracking-widest uppercase text-white">TODAY</span>}
                                             </span>
                                             {/* Mobile Day Label */}
                                             <span className="md:hidden font-mono text-xs text-zinc-500 font-bold">
@@ -273,9 +365,9 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
 
                                         {/* Event List */}
                                         <div className="flex flex-col gap-1 mt-auto">
-                                            {events.map(ev => {
-                                                const team = myTeams.find(t => t.id === ev.teamId) || SPORTS_DATA.find(t => t.id === ev.teamId);
-                                                const opponentTeam = myTeams.find(t => t.id === ev.opponent) || SPORTS_DATA.find(t => t.id === ev.opponent);
+                                            {events.map((ev: any) => {
+                                                const team = myTeams.find((t: Team) => t.id === ev.teamId);
+                                                const opponentTeam = myTeams.find((t: Team) => t.id === ev.opponent);
 
                                                 // 상대팀 UUID가 myTeams에 없으면 원본 opponent 텍스트 사용
                                                 const opponentName = opponentTeam ? opponentTeam.name : ev.opponent;
@@ -294,9 +386,14 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                                                         className="relative group/ev flex items-center justify-between overflow-hidden bg-zinc-800/80 border border-zinc-600/50 hover:bg-zinc-700 hover:border-zinc-400 transition-all px-1 py-0.5 shadow-sm"
                                                     >
                                                         {isRace ? (
-                                                            <div className="w-full flex justify-between items-center px-1">
-                                                                <span className="font-oswald font-bold text-white text-[10px] uppercase truncate">{simpleText}</span>
-                                                                <span className="text-[10px]">🏎️</span>
+                                                            <div className="w-full flex justify-between items-center px-1 overflow-hidden">
+                                                                <span className="font-oswald font-bold text-white text-[9px] md:text-[10px] uppercase truncate flex-1">
+                                                                    {ev.homeTeamName}
+                                                                </span>
+                                                                <div className="flex items-center gap-1 shrink-0 ml-1">
+                                                                    <span className="font-mono text-[9px] text-zinc-400">{ev.time}</span>
+                                                                    <span className="text-[10px]">🏎️</span>
+                                                                </div>
                                                             </div>
                                                         ) : (
                                                             <>
@@ -350,13 +447,14 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                                 </div>
                             ) : (
                                 displayedEvents.map((event, idx) => {
-                                    const team = myTeams.find(t => t.id === event.teamId) || SPORTS_DATA.find(t => t.id === event.teamId);
-                                    const opponentTeam = myTeams.find(t => t.id === event.opponent) || SPORTS_DATA.find(t => t.id === event.opponent);
-                                    const opponentName = opponentTeam ? opponentTeam.name : event.opponent;
+                                    const team = event.homeTeam || myTeams.find((t: Team) => t.id === event.teamId);
+                                    const opponentName = event.awayTeam?.name || event.opponent;
 
-                                    if (!team) return null;
                                     const dDay = getDDay(event.date);
                                     const isImminent = dDay === 'D-DAY' || dDay === 'D-1';
+
+                                    // Team-less events (races) should still be shown
+                                    if (!team && event.type !== 'race') return null;
 
                                     return (
                                         <motion.div
@@ -381,37 +479,61 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                                             </div>
 
                                             {/* Match Info (Grid Layout for equal spacing) */}
-                                            <div className="flex-1 grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
-                                                {/* Home/My Team */}
-                                                <div className="flex items-center gap-3 justify-end text-right overflow-hidden min-w-0">
-                                                    <div className="flex flex-col items-end min-w-0 flex-1">
-                                                        <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-200">
-                                                            {team.name}
+                                            {event.type === 'race' ? (
+                                                /* F1 / Event Layout */
+                                                <div className="flex-1 flex items-center justify-between gap-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-white group-hover:text-zinc-200 transition-colors">
+                                                            {event.homeTeamName}
                                                         </span>
-                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase">HOME</span>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-zinc-900 border border-zinc-700 px-1.5">{event.league?.name || 'F1'}</span>
+                                                            <span className="text-[10px] font-bold text-zinc-600 uppercase italic">@{event.venue}</span>
+                                                        </div>
                                                     </div>
-                                                    <span className="text-3xl shrink-0">{team.logo}</span>
+                                                    <div className="flex items-center gap-3 shrink-0">
+                                                        <div className="text-right">
+                                                            <div className="text-white font-mono font-bold text-xl md:text-2xl">
+                                                                {event.time}
+                                                            </div>
+                                                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">LOCAL TIME</div>
+                                                        </div>
+                                                        <span className="text-3xl md:text-4xl">🏎️</span>
+                                                    </div>
                                                 </div>
+                                            ) : (
+                                                /* Standard 1v1 Match Layout */
+                                                <div className="flex-1 grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                                                    {/* Home/My Team */}
+                                                    <div className="flex items-center gap-3 justify-end text-right overflow-hidden min-w-0">
+                                                        <div className="flex flex-col items-end min-w-0 flex-1">
+                                                            <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-200">
+                                                                {team?.name || 'Unknown'}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase">HOME</span>
+                                                        </div>
+                                                        <span className="text-3xl shrink-0">{team?.logo || '🏆'}</span>
+                                                    </div>
 
-                                                {/* VS Time (Center) */}
-                                                <div className="flex flex-col items-center justify-center shrink-0 px-2">
-                                                    <span className="text-zinc-700 font-black italic text-lg leading-none">VS</span>
-                                                    <div className="text-white font-mono font-bold text-sm bg-zinc-900 border border-zinc-700 px-2 py-0.5 mt-1">
-                                                        {event.time}
+                                                    {/* VS Time (Center) */}
+                                                    <div className="flex flex-col items-center justify-center shrink-0 px-2">
+                                                        <span className="text-zinc-700 font-black italic text-lg leading-none">VS</span>
+                                                        <div className="text-white font-mono font-bold text-sm bg-zinc-900 border border-zinc-700 px-2 py-0.5 mt-1">
+                                                            {event.time}
+                                                        </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Opponent */}
-                                                <div className="flex items-center gap-3 justify-start text-left overflow-hidden min-w-0">
-                                                    {/* Start with Opponent text logic to ensure it behaves same as Home */}
-                                                    <div className="flex flex-col items-start min-w-0 flex-1">
-                                                        <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-400">
-                                                            {opponentName}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-zinc-600 uppercase">AWAY</span>
+                                                    {/* Opponent */}
+                                                    <div className="flex items-center gap-3 justify-start text-left overflow-hidden min-w-0">
+                                                        <div className="flex flex-col items-start min-w-0 flex-1">
+                                                            <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-400">
+                                                                {opponentName}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-zinc-600 uppercase">AWAY</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </motion.div>
                                     );
                                 })
@@ -420,6 +542,6 @@ export default function MainCalendar({ myTeams }: MainCalendarProps) {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

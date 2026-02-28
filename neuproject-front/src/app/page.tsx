@@ -7,7 +7,7 @@ import Header from "@/components/layout/Header";
 import MainCalendar from "@/components/calendar/MainCalendar";
 import TeamSelector from "@/components/team/TeamSelector";
 import Ticker from "@/components/layout/Ticker";
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 import { useAuth } from '@/hooks/useAuth';
 import { getFollowedTeams, toggleTeamFollow } from '@/lib/teamsApi';
 
@@ -21,16 +21,34 @@ export default function Home() {
       const fetchFollows = async () => {
         try {
           const followedTeams = await getFollowedTeams(user.uid);
-          // API 응답 형식을 Team 형식으로 변환 (필요한 경우)
           const formattedTeams: Team[] = followedTeams.map(t => ({
             id: t.id,
             name: t.name,
-            logo: '', // DB에는 없으므로 비움
+            logo: '',
             logoUrl: t.logo_url || undefined,
             mainColor: t.primary_color || '#ff4655',
             subColor: t.secondary_color || '#000000',
+            leagueId: t.league_id,
             sport: (t.leagues as any)?.category || 'Sports'
           }));
+
+          // 사용자 지정 순서 복원
+          const savedOrder = localStorage.getItem(`teamOrder_${user.uid}`);
+          if (savedOrder) {
+            try {
+              const orderArr: string[] = JSON.parse(savedOrder);
+              formattedTeams.sort((a, b) => {
+                const idxA = orderArr.indexOf(a.id);
+                const idxB = orderArr.indexOf(b.id);
+                if (idxA === -1 && idxB === -1) return 0;
+                if (idxA === -1) return 1;
+                if (idxB === -1) return -1;
+                return idxA - idxB;
+              });
+            } catch (e) {
+              console.error("Failed to parse saved order", e);
+            }
+          }
           setMyTeams(formattedTeams);
         } catch (error) {
           console.error('Failed to fetch followed teams:', error);
@@ -40,13 +58,25 @@ export default function Home() {
     }
   }, [isLoggedIn, user?.uid]);
 
+  const handleReorder = (newTeams: Team[]) => {
+    setMyTeams(newTeams);
+    if (user?.uid) {
+      localStorage.setItem(`teamOrder_${user.uid}`, JSON.stringify(newTeams.map(t => t.id)));
+    }
+  };
+
   const toggleTeam = async (team: Team) => {
-    // 1. 낙관적 업데이트 (UI 즉시 반영)
+    // 1. 낙관적 업데이트 (UI 즉시 반영) // Drag and drop compatibility
     const isCurrentlyFollowed = myTeams.find(t => t.id === team.id);
+    let newTeams: Team[];
     if (isCurrentlyFollowed) {
-      setMyTeams(myTeams.filter(t => t.id !== team.id));
+      newTeams = myTeams.filter(t => t.id !== team.id);
     } else {
-      setMyTeams([...myTeams, team]);
+      newTeams = [...myTeams, team];
+    }
+    setMyTeams(newTeams);
+    if (user?.uid) {
+      localStorage.setItem(`teamOrder_${user.uid}`, JSON.stringify(newTeams.map(t => t.id)));
     }
 
     // 2. DB 동기화 (로그인된 경우)
@@ -55,7 +85,6 @@ export default function Home() {
         await toggleTeamFollow(team.id, user.uid);
       } catch (error) {
         console.error('Failed to toggle team follow in DB:', error);
-        // 에러 시 롤백 로직 (생략 가능하지만 정석은 롤백)
         if (isCurrentlyFollowed) {
           setMyTeams(prev => [...prev, team]);
         } else {
@@ -112,7 +141,7 @@ export default function Home() {
       <div className="flex-1 w-full mx-auto p-4 md:p-6 pt-20 md:pt-24 pb-4 relative z-10 flex gap-6 max-h-[calc(100vh-8rem)]">
         {/* Calendar acts as the suspend main card */}
         <div className="flex-1 h-full shadow-2xl">
-          <MainCalendar myTeams={myTeams} />
+          <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />
         </div>
       </div>
 

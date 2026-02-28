@@ -23,4 +23,18 @@ export class MatchesController {
             memberUid,
         );
     }
+
+    @Get('recent')
+    @ApiOperation({ summary: '최근 경기 결과 조회 (티커용)' })
+    @ApiQuery({ name: 'days', type: Number, required: false, description: '조회할 최근 일수 (기본값: 7)' })
+    @ApiQuery({ name: 'memberUid', type: String, required: false })
+    async getRecentMatches(
+        @Query('days') days?: string,
+        @Query('memberUid') memberUid?: string,
+    ) {
+        return this.matchesService.findRecentMatches(
+            days ? parseInt(days) : 7,
+            memberUid,
+        );
+    }
 }

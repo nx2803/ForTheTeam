@@ -1,30 +1,67 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Ticker() {
     const { themeColors } = useTheme();
+    const { user, isLoggedIn } = useAuth();
+    const [recentMatches, setRecentMatches] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecentMatches = async () => {
+            try {
+                let url = 'http://localhost:3001/matches/recent?days=7';
+                if (isLoggedIn && user?.uid) {
+                    url += `&memberUid=${user.uid}`;
+                }
+                const res = await fetch(url);
+                const data = await res.json();
+                setRecentMatches(data);
+            } catch (error) {
+                console.error('Failed to fetch recent matches for ticker:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchRecentMatches();
+    }, [isLoggedIn, user?.uid]);
 
     // 대비 색상에 따른 텍스트 컬러 결정
     const isDarkText = themeColors.primaryText === '#000000';
-    const accentTextClass = isDarkText ? "text-white/70" : "text-white/80";
+    const contrastTextClass = isDarkText ? "text-black" : "text-white";
+    const accentTextClass = isDarkText ? "text-black/70" : "text-white/80";
     const subTextClass = isDarkText ? "text-black/30" : "text-white/30";
-    const contrastTextClass = isDarkText ? "text-white" : "text-white";
 
     const tickerContent = (
         <React.Fragment>
-            <span className={contrastTextClass}>BAY <span className={accentTextClass}>2 - 1</span> CHE</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
-            <span className={contrastTextClass}>RMA <span className={accentTextClass}>3 - 0</span> BAR</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
-            <span className={contrastTextClass}>LIV <span className={accentTextClass}>1 - 1</span> MCI</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
-            <span className={contrastTextClass}>PSG <span className={accentTextClass}>4 - 0</span> MAR</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
-            <span className={contrastTextClass}>NAP <span className={accentTextClass}>2 - 2</span> MIL</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
+            {isLoading ? (
+                <span className={contrastTextClass}>LOADING RECENT MATCHES...</span>
+            ) : recentMatches.length > 0 ? (
+                recentMatches.map((match, idx) => {
+                    const homeName = match.home_team?.name || match.home_team_id;
+                    const awayName = match.away_team?.name || match.away_team_id;
+                    const score = `${match.home_score} - ${match.away_score}`;
+                    return (
+                        <React.Fragment key={match.id}>
+                            <span className={contrastTextClass}>
+                                {homeName}{" "}
+                                <span className={accentTextClass}>{score}</span>{" "}
+                                {awayName}
+                            </span>
+                            <span className={`${subTextClass} mx-4`}>///</span>
+                        </React.Fragment>
+                    );
+                })
+            ) : (
+                <span className={contrastTextClass}>NO RECENT MATCH RESULTS FOR YOUR TEAMS</span>
+            )}
+            {/* Always add default message to pad out */}
+            {!isLoading && <span className={`${subTextClass} mx-4`}>///</span>}
             <span className={`${accentTextClass} font-black`}>SELECT YOUR TEAM FOR CUSTOM SCHEDULE</span>
             <span className={`${subTextClass} mx-4`}>///</span>
         </React.Fragment>

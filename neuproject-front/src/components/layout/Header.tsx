@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoginModal from '@/components/auth/LoginModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 
 interface HeaderProps {
     myTeams?: Team[];

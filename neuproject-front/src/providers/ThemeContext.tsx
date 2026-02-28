@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Team } from '@/data/sportsData';
+import { Team } from '@/types/team';
 
 interface ThemeColors {
     primary: string;

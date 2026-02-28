@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FootballService } from '../football/football.service';
 import { PandaScoreService } from '../pandascore/pandascore.service';
@@ -18,10 +19,11 @@ export class SyncService {
     ) { }
 
     /**
-     * 모든 리그의 경기 데이터를 동기화
+     * 전체 일정 동기화 (매 12시간마다 - 새로운 일정 확보용)
      */
+    @Cron('0 0 */12 * * *')
     async syncAll() {
-        this.logger.log('Starting full synchronization...');
+        this.logger.log('[CRON_FULL] Starting full schedule synchronization...');
 
         const results = {
             football: await this.syncFootball(),
@@ -30,8 +32,21 @@ export class SyncService {
             kbo: await this.syncKbo(),
         };
 
-        this.logger.log('Full synchronization completed');
+        this.logger.log('[CRON_FULL] Full synchronization completed');
         return results;
+    }
+
+    /**
+     * 라이브 스코어 동기화 (매 30분마다 - 현재 진행중이거나 오늘 경기 점수 업데이트)
+     */
+    @Cron('0 */30 * * * *')
+    async syncLiveScores() {
+        this.logger.log('[CRON_LIVE] Starting live scores synchronization...');
+        // 스코어 업데이트를 위해 syncAll을 재사용하거나 
+        // 추후 API별로 '오늘' 경기 전용 엔드포인트가 있다면 분리 가능
+        // 현재는 API들이 전체 혹은 최근 일정을 주므로 동일하게 수행하되 upsert 로직에서 쓰기 최소화
+        await this.syncAll();
+        this.logger.log('[CRON_LIVE] Live scores synchronization completed');
     }
 
     /**
@@ -204,23 +219,42 @@ export class SyncService {
             return;
         }
 
+        // --- Smart Upsert: 변경 사항이 있을 때만 DB 쓰기 발생 ---
+        const existing = await matchesModel.findUnique({
+            where: { external_api_id: data.external_api_id }
+        });
+
+        if (existing) {
+            const needsUpdate =
+                existing.status !== data.status ||
+                existing.home_score !== data.home_score ||
+                existing.away_score !== data.away_score ||
+                existing.match_at.getTime() !== data.match_at.getTime() ||
+                existing.venue !== data.venue;
+
+            if (!needsUpdate) return; // 변경 내용 없음 -> DB 쓰지 않음
+
+            return matchesModel.update({
+                where: { external_api_id: data.external_api_id },
+                data: {
+                    status: data.status,
+                    home_score: data.home_score,
+                    away_score: data.away_score,
+                    match_at: data.match_at,
+                    venue: data.venue,
+                    updated_at: new Date(),
+                },
+            });
+        }
+
         if (!homeTeam || !awayTeam) {
             this.logger.warn(`[SYNC_MATCH_FAIL] League: ${data.league_code}, Date: ${data.match_at.toISOString()}`);
             if (!homeTeam) this.logger.warn(`  - Home Team NOT Found: "${data.home_team_name}"`);
             if (!awayTeam) this.logger.warn(`  - Away Team NOT Found: "${data.away_team_name}"`);
         }
 
-        return matchesModel.upsert({
-            where: { external_api_id: data.external_api_id },
-            update: {
-                status: data.status,
-                home_score: data.home_score,
-                away_score: data.away_score,
-                match_at: data.match_at,
-                venue: data.venue,
-                updated_at: new Date(),
-            },
-            create: {
+        return matchesModel.create({
+            data: {
                 external_api_id: data.external_api_id,
                 league_id: data.league_id,
                 home_team_id: homeTeam?.id,

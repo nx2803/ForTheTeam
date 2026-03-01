@@ -1,9 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 응답 압축 활성화
+  app.use(compression());
 
   // CORS 설정 - 프론트엔드와 통신을 위해 필요
   app.enableCors({

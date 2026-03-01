@@ -179,7 +179,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         <span
-                            className="font-oswald font-black italic uppercase tracking-widest text-lg"
+                            className="font-oswald font-black uppercase tracking-widest text-lg"
                             style={{ color: themeColors.primaryText }}
                         >
                             {isOpen ? "CLOSE FEED" : "CUSTOMIZE TEAM"}
@@ -226,8 +226,8 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                         <button
                                             key={sport.id}
                                             onClick={() => { setSelectedSportId(sport.id); setSelectedLeagueId(sport.leagues[0]?.id || ''); }}
-                                            className={`px-3 py-1 font-oswald font-bold italic uppercase tracking-wider text-sm transition-all transform hover:-skew-x-12 ${selectedSportId === sport.id
-                                                ? 'bg-white text-black -skew-x-12'
+                                            className={`px-3 py-1 font-oswald font-bold uppercase tracking-wider text-sm transition-all ${selectedSportId === sport.id
+                                                ? 'bg-white text-black'
                                                 : 'text-zinc-500 hover:text-white'}`}
                                         >
                                             {sport.icon} {sport.name}
@@ -261,7 +261,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                                 className={`
                                                     group relative h-12 flex items-center justify-between px-4 cursor-pointer transition-all duration-150 border-2
                                                     ${isSelected
-                                                        ? 'bg-zinc-700 text-white border-white transform -skew-x-6 hover:skew-x-0 shadow-lg'
+                                                        ? 'bg-zinc-700 text-white border-white shadow-lg'
                                                         : 'bg-white/5 text-zinc-400 border-transparent hover:bg-white/10 hover:text-white hover:border-white/50'}`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -276,7 +276,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                                     ) : (
                                                         <span className="text-xl w-6 text-center">{team.logo}</span>
                                                     )}
-                                                    <span className="font-oswald font-bold uppercase italic tracking-wide text-sm pt-0.5">
+                                                    <span className="font-oswald font-bold uppercase tracking-wide text-sm pt-0.5">
                                                         {team.name}
                                                     </span>
                                                 </div>

@@ -100,7 +100,7 @@ export default function Home() {
       <Ticker myTeams={myTeams} />
 
       {/* 1. Background Typography (THE 'REAL' FTT GRID) */}
-      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.35]">
+      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.25]">
         <div
           className="absolute w-[200vw] h-[200vh] top-[-50vh] left-[-50vw] flex flex-col justify-center"
         >

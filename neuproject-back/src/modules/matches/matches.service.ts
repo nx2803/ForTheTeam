@@ -1,20 +1,35 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class MatchesService {
     private readonly logger = new Logger(MatchesService.name);
 
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    ) { }
 
     async findCalendarMatches(year: number, month: number, memberUid?: string) {
+        const cacheKey = `matches:${year}:${month}:${memberUid || 'public'}`;
+
+        // 캐시 확인
+        const cachedData = await this.cacheManager.get<any[]>(cacheKey);
+        if (cachedData) {
+            this.logger.log(`Returning cached matches for ${year}-${month}`);
+            return cachedData;
+        }
+
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
-        this.logger.log(`Fetching matches for ${year}-${month}`);
+        this.logger.log(`Fetching matches from DB for ${year}-${month}`);
 
         // 기본적인 경기 조회 쿼리 (팀 정보 포함)
         const matches = await this.prisma.matches.findMany({
+            // ... (기존 쿼리 생략 가능하지만 전체 유지)
             where: {
                 match_at: {
                     gte: startDate,
@@ -52,6 +67,9 @@ export class MatchesService {
                 match_at: 'asc',
             },
         });
+
+        // 결과 캐싱 (10분)
+        await this.cacheManager.set(cacheKey, matches, 600000);
 
         return matches;
     }

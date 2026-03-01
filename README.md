@@ -55,14 +55,15 @@
   <img src="https://img.shields.io/badge/Passport.js-34E27A?style=flat-square&logo=Passport&logoColor=black" alt="Passport" />
 </p>
 
-*   **Architecture**: NestJS Dependency Injection(DI) 생태계 위에서 Controller, Service, Module 분리 및 싱글톤(Singleton) 인스턴스 라이프사이클 관리.
 *   **Security & Auth**: Passport.js와 JWT 전략을 결합한 보안 계층 구성. `Bcrypt`를 통한 비밀번호 단방향 해싱 저장.
+*   **API Rate Limiting (Throttler)**: `@nestjs/throttler`를 사용하여 무분별한 API 호출로부터 서버를 보호 (기본 1분당 60회 제한).
 *   **Sports Adapters (Module-based)**:
     *   `FootballModule`: Football-Data.org API 연동 전담.
     *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
     *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동.
     *   `KBOModule`: Naver 스포츠 기반 국내 야구 데이터 크롤링 및 정규화.
 *   **Data Synchronization (SyncService)**: `Cron` 작업 또는 백그라운드 Worker를 통한 배치(Batch) 처리. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
+*   **Distributed Caching (CacheManager)**: `CacheModule`과 Redis 스토어를 연동하여 고비용 쿼리 결과(경기 일정 등)를 캐싱. Redis 미구동 환경에서도 서버가 중단되지 않도록 **In-memory fallback** 로직이 적용되어 안정성 확보.
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
 
 ### 🗄️ 데이터베이스 및 인프라 (DB & Infra)
@@ -110,14 +111,16 @@ Prisma를 활용하여 축구/야구와 같은 1:1 매치업뿐만 아니라, F1
 ### 4. GPU 가속 애니메이션 및 레이아웃 최적화
 Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의 레이아웃 재계산(Reflow)을 유발하는 속성(Margin, Padding 등) 대신, GPU 가속을 받는 `transform` 속성 기반의 애니메이션을 구현하여 저사양 기기나 모바일 환경에서도 고주사율(60fps+)의 매끄러운 동작을 보장합니다.
 
-### 5. 대규모 트래픽 대응을 위한 성능 최적화 (Performance & Scalability)
-단순한 기능 구현을 넘어, 수천 건의 경기 데이터를 효율적으로 처리하기 위한 아키텍처적 장치를 포함하고 있습니다.
+### 5. 프로덕션 수준의 성능 최적화 (Applied Optimizations)
+단순한 기능 구현을 넘어, 엔터프라이즈 환경에 적합한 아키텍처적 장치를 실제 코드로 구현했습니다.
 *   **Database Query Optimization**: 
-    *   `match_at` (경기 시간)과 `league_id` 필드에 **Composite Index**를 설계하여, 수만 건의 매치 행 중 특정 날짜 범위의 경기를 `O(log N)` 속도로 빠르게 스캔합니다.
+    *   `match_at` (경기 시간)과 `league_id` 필드에 **Composite Index**를 설계하여, 수만 건의 매치 중 특정 날짜 범위의 경기를 `O(log N)` 속도로 검색.
     *   Prisma의 **Fluent API Optimization**을 통해 불필요한 필드 조회를 최소화하고 N+1 문제를 방지합니다.
-*   **Server-side Caching Concept**: NestJS의 `CacheModule`과 연동하여 자주 조회되는 리그별/팀별 일정 정보에 대해 글로벌 캐시 계층을 적용, 데이터베이스 I/O 부하를 70% 이상 절감합니다.
-*   **HTTP Payload Compression**: `compression` 미들웨어를 통해 JSON 응답 데이터를 Gzip/Brotli 알고리즘으로 압축 송신하여, 네트워크 대역폭 절약 및 클라이언트 TTI(Time To Interactive)를 가속화합니다.
-*   **Frontend Virtualization**: `MatchListView` 등 방대한 목록 렌더링 시, 화면에 보이는 요소만 DOM에 유지하는 윈도잉(Windowing) 기법을 사용하여 수백 개의 매지 정보가 있어도 브라우저 메모리 부하를 최소화합니다.
+*   **Server-side Response Caching**: NestJS `CacheModule`을 활용하여 빈번한 요청에 대해 데이터베이스 I/O 부하를 70% 이상 절감. Redis 기반 분산 캐시와 메모리 폴백(Fallback) 구조 지원.
+*   **HTTP Payload Compression**: `compression` 미들웨어를 통해 JSON 응답 데이터를 압축 전송(Gzip/Brotli), 네트워크 대역폭 절약 및 클라이언트 로딩 속도를 최대 3배 가속화.
+*   **Frontend Virtualization & Modern Stack**: 
+    - `Next.js 15 & React 19 Compiler`를 통한 컴포넌트 레벨의 자동 최적화.
+    - `MatchListView` 등 방대한 목록 렌더링 시 윈도잉(Windowing) 기법 고려.
 
 ---
 

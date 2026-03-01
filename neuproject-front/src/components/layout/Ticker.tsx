@@ -74,10 +74,14 @@ export default function Ticker({ myTeams }: TickerProps) {
             ) : (
                 <span className={contrastTextClass}>NO RECENT MATCH RESULTS FOR YOUR TEAMS</span>
             )}
-            {/* Always add default message to pad out */}
-            {!isLoading && <span className={`${subTextClass} mx-4`}>///</span>}
-            <span className={`${accentTextClass} font-black`}>SELECT YOUR TEAM FOR CUSTOM SCHEDULE</span>
-            <span className={`${subTextClass} mx-4`}>///</span>
+            {/* 팔로우 팀이 없을 때만 가이드 문구 표시 */}
+            {(!myTeams || myTeams.length === 0) && (
+                <React.Fragment>
+                    {!isLoading && <span className={`${subTextClass} mx-4`}>///</span>}
+                    <span className={`${accentTextClass} font-black`}>SELECT YOUR TEAM FOR CUSTOM SCHEDULE</span>
+                    <span className={`${subTextClass} mx-4`}>///</span>
+                </React.Fragment>
+            )}
         </React.Fragment>
     );
 

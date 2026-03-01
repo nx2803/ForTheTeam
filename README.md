@@ -86,7 +86,7 @@
     *   `FootballModule`: Football-Data.org API 연동 전담.
     *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
     *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동.
-    *   `KBOModule`: Naver 스포츠 기반 국내 야구 데이터 크롤링 및 정규화.
+    *   `KBOModule`: 네이버 스포츠의 **내부 API 게이트웨이**를 리버스 엔지니어링하여 국내 야구 데이터를 가장 신속하고 정확하게 동기화.
 *   **Data Synchronization (SyncService)**: `Cron` 작업과 WebSocket 브로드캐스트를 결합한 실시간 데이터 파이프라인. DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키는 **Smart Emit** 로직 탑재. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
 *   **Distributed Caching (CacheManager)**: `CacheModule`과 Redis 스토어를 연동하여 고비용 쿼리 결과(경기 일정 등)를 캐싱. Redis 미구동 환경에서도 서버가 중단되지 않도록 **In-memory fallback** 로직이 적용되어 안정성 확보.
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
@@ -156,7 +156,7 @@ Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의
 *   **Server-side Response Caching**: NestJS `CacheModule`을 활용하여 빈번한 요청에 대해 데이터베이스 I/O 부하를 70% 이상 절감. Redis 기반 분산 캐시와 메모리 폴백(Fallback) 구조 지원.
 *   **HTTP Payload Compression**: `compression` 미들웨어를 통해 JSON 응답 데이터를 압축 전송(Gzip/Brotli), 네트워크 대역폭 절약 및 클라이언트 로딩 속도를 최대 3배 가속화.
 *   **Frontend Virtualization & Modern Stack**: 
-    - `Next.js 16 & React 19 Compiler`를 통한 컴포넌트 레벨의 자동 최적화.
+    - `Next.js 16 & React 19` 생태계를 통한 현대적인 컴포넌트 설계 및 최적화.
     - `MatchListView` 등 방대한 목록 렌더링 시 윈도잉(Windowing) 기법 고려.
 
 ---
@@ -168,7 +168,7 @@ Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의
 *   ⚽ **[Football-Data.org](https://www.football-data.org/)**: 프리미어리그, 분데스리가, 라리가 등 유럽 주요 축구 리그의 경기 일정 및 결과 데이터를 제공받고 있습니다.
 *   🎮 **[PandaScore](https://pandascore.co/)**: LCK(League of Legends Champions Korea)를 포함한 글로벌 e스포츠 데이터를 정규화하여 제공받고 있습니다.
 *   🏀 **[ESPN API](https://www.espn.com/apis/devcenter/overview.aspx)**: NBA, MLB, NHL, NFL 등 북미 주요 프로스포츠의 실시간 스코어보드와 시즌 일정을 연동하고 있습니다.
-*   ⚾ **[Naver Sports](https://sports.news.naver.com/)**: KBO 리그의 상세 일정 및 팀별 정보를 네이버 스포츠 API 엔드포인트를 통해 정규화하여 사용하고 있습니다.
+*   ⚾ **[Naver Sports](https://sports.news.naver.com/)**: KBO 리그의 상세 일정 및 팀별 정보를 네이버 스포츠의 내부 API 엔드포인트를 통해 실시간 정규화하여 사용하고 있습니다.
 *   🏎️ **[F1 Official Data](https://www.formula1.com/)**: 포뮬러 1 그랑프리 일정은 공식 소스를 기반으로 정제된 데이터를 활용하고 있습니다.
 
 ---

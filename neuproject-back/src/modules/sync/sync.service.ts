@@ -91,32 +91,41 @@ export class SyncService {
     private async syncKbo() {
         const now = new Date();
         const year = now.getFullYear().toString();
-        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        // KBO 시즌은 보통 3월(시범경기)부터 11월(포스트시즌)까지 진행됨
+        const months = ['03', '04', '05', '06', '07', '08', '09', '10', '11'];
 
         try {
-            const data = await this.kboService.getSchedule(year, month);
             const league = await this.prisma.leagues.findFirst({ where: { name: { contains: 'KBO' } } });
             if (!league) return 0;
 
-            let count = 0;
-            for (const g of data.games) {
-                await this.upsertMatch({
-                    external_api_id: `KBO_${g.gameId}`,
-                    league_id: league.id,
-                    league_code: 'KBO',
-                    home_team_name: g.homeTeam.name,
-                    away_team_name: g.awayTeam.name,
-                    match_at: new Date(g.dateTime),
-                    status: this.mapKboStatus(g.statusCode),
-                    home_score: g.homeTeam.score,
-                    away_score: g.awayTeam.score,
-                    venue: g.venue,
-                });
-                count++;
+            let totalCount = 0;
+            for (const month of months) {
+                this.logger.log(`[SYNC_KBO] Syncing KBO matches for ${year}-${month}...`);
+                try {
+                    const data = await this.kboService.getSchedule(year, month);
+                    for (const g of data.games) {
+                        await this.upsertMatch({
+                            external_api_id: `KBO_${g.gameId}`,
+                            league_id: league.id,
+                            league_code: 'KBO',
+                            home_team_name: g.homeTeam.name,
+                            away_team_name: g.awayTeam.name,
+                            match_at: new Date(g.dateTime),
+                            status: this.mapKboStatus(g.statusCode),
+                            home_score: g.homeTeam.score,
+                            away_score: g.awayTeam.score,
+                            venue: g.venue,
+                        });
+                        totalCount++;
+                    }
+                } catch (monthError) {
+                    this.logger.warn(`Failed to sync KBO for ${month}: ${monthError.message}`);
+                }
             }
-            return count;
+            this.logger.log(`[SYNC_KBO] Total ${totalCount} KBO matches synced`);
+            return totalCount;
         } catch (error) {
-            this.logger.warn(`KBO Sync bypassed: ${error.message} (Possibly off-season or no data for this month)`);
+            this.logger.error(`KBO Sync failed: ${error.message}`);
             return 0;
         }
     }

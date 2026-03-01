@@ -97,11 +97,10 @@ export default function Home() {
   return (
     <main className="flex h-screen w-full flex-col relative overflow-hidden bg-[#0a0a0a]">
       {/* 0. Top Ticker */}
-      <Ticker />
+      <Ticker myTeams={myTeams} />
 
       {/* 1. Background Typography (THE 'REAL' FTT GRID) */}
-      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.4]">
-        {/* Fixed background to stay in place while scrolling */}
+      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.35]">
         <div
           className="absolute w-[200vw] h-[200vh] top-[-50vh] left-[-50vw] flex flex-col justify-center"
         >
@@ -137,8 +136,7 @@ export default function Home() {
       <Header myTeams={myTeams} />
 
       {/* 3. Main Content Area */}
-      {/* Reduced margins to fit calendar without scroll */}
-      <div className="flex-1 w-full mx-auto p-4 md:p-6 pt-20 md:pt-24 pb-4 relative z-10 flex gap-6 max-h-[calc(100vh-8rem)]">
+      <div className="flex-1 w-full mx-auto p-4 md:p-6 pt-20 md:pt-24 pb-2 relative z-10 flex gap-6 max-h-[calc(100vh-1rem)]">
         {/* Calendar acts as the suspend main card */}
         <div className="flex-1 h-full shadow-2xl">
           <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />

@@ -4,19 +4,30 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { Team } from '@/types/team';
 
-export default function Ticker() {
+interface TickerProps {
+    myTeams?: Team[];
+}
+
+export default function Ticker({ myTeams }: TickerProps) {
     const { themeColors } = useTheme();
     const { user, isLoggedIn } = useAuth();
     const [recentMatches, setRecentMatches] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const teamIds = myTeams?.map(t => t.id).join(',') || '';
+
     useEffect(() => {
         const fetchRecentMatches = async () => {
             try {
+                setIsLoading(true);
                 let url = 'http://localhost:3001/matches/recent?days=7';
                 if (isLoggedIn && user?.uid) {
                     url += `&memberUid=${user.uid}`;
+                } else if (teamIds) {
+                    url += `&teamIds=${teamIds}`;
                 }
                 const res = await fetch(url);
                 const data = await res.json();
@@ -29,7 +40,7 @@ export default function Ticker() {
         };
 
         fetchRecentMatches();
-    }, [isLoggedIn, user?.uid]);
+    }, [isLoggedIn, user?.uid, teamIds]);
 
     // 대비 색상에 따른 텍스트 컬러 결정
     const isDarkText = themeColors.primaryText === '#000000';
@@ -40,7 +51,10 @@ export default function Ticker() {
     const tickerContent = (
         <React.Fragment>
             {isLoading ? (
-                <span className={contrastTextClass}>LOADING RECENT MATCHES...</span>
+                <div className="flex items-center gap-3">
+                    <LoadingSpinner size="sm" text="" />
+                    <span className={contrastTextClass}>LOADING LATEST RESULTS</span>
+                </div>
             ) : recentMatches.length > 0 ? (
                 recentMatches.map((match, idx) => {
                     const homeName = match.home_team?.name || match.home_team_id;
@@ -77,9 +91,9 @@ export default function Ticker() {
         >
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 z-10 pointer-events-none opacity-50"></div>
             <motion.div
-                className="flex whitespace-nowrap font-oswald font-bold text-sm tracking-widest uppercase items-center"
+                className="flex whitespace-nowrap font-oswald font-bold text-base tracking-widest uppercase items-center"
                 animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, ease: "linear", duration: 30 }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 70 }}
                 style={{ width: "fit-content" }}
             >
                 {/* Duplicate content enough times to fill screen and loop smoothly */}

@@ -1,37 +1,19 @@
 // src/hooks/useAuth.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { LoginResponse } from '@/lib/authApi';
 
 export function useAuth() {
-    const [user, setUser] = useState<LoginResponse | null>(null);
-
-    useEffect(() => {
-        // localStorage에서 사용자 정보 불러오기
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            try {
-                setUser(JSON.parse(savedUser));
-            } catch (error) {
-                console.error('Failed to parse user data:', error);
-                localStorage.removeItem('user');
-            }
-        }
-    }, []);
-
-    const logout = () => {
-        localStorage.removeItem('user');
-        setUser(null);
-    };
+    const { user, isLoggedIn, login, logout } = useAuthStore();
 
     const handleLoginSuccess = (userData: LoginResponse) => {
-        setUser(userData);
+        login(userData);
     };
 
     return {
         user,
-        isLoggedIn: !!user,
+        isLoggedIn,
         logout,
         handleLoginSuccess,
     };

@@ -7,6 +7,7 @@ export type Team = {
     subColor: string;
     leagueId: string;
     sport?: string;
+    abbreviation?: string;
 };
 
 export type League = {
@@ -36,5 +37,7 @@ export type CalendarEvent = {
     league?: any;
     homeTeamName?: string;
     awayTeamName?: string;
+    homeTeamAbbr?: string;
+    awayTeamAbbr?: string;
     venue?: string;
 };

@@ -59,14 +59,14 @@ export default function Header({ myTeams = [] }: HeaderProps) {
                     {!isLoggedIn ? (
                         <button
                             onClick={() => setIsLoginOpen(true)}
-                            className="relative px-8 py-3 bg-white text-black text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 skew-x-[-12deg] shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden"
+                            className="relative px-8 py-3 bg-white text-black text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden"
                         >
                             <div
                                 className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
                                 style={{ backgroundColor: themeColors.primary }}
                             />
                             <span
-                                className="relative block skew-x-[12deg] group-hover:text-current"
+                                className="relative block group-hover:text-current"
                                 style={{ color: 'inherit' }}
                             // Note: We'll handle the text color change via a dynamic style or simple group-hover
                             >
@@ -82,9 +82,9 @@ export default function Header({ myTeams = [] }: HeaderProps) {
                         <>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="relative px-6 py-3 bg-zinc-900 border-2 border-zinc-700 text-white text-sm font-black font-oswald tracking-widest uppercase hover:border-sport-red transition-all duration-300 skew-x-[-12deg] shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95"
+                                className="relative px-6 py-3 bg-zinc-900 border-2 border-zinc-700 text-white text-sm font-black font-oswald tracking-widest uppercase hover:border-sport-red transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95"
                             >
-                                <span className="block skew-x-[12deg] flex items-center gap-2">
+                                <span className="block flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
                                     {user?.nickname}
                                 </span>

@@ -16,9 +16,9 @@ export class KboService {
      */
     async getSchedule(year: string, month: string) {
         try {
-            const fromDate = `${year}${month}01`;
+            const fromDate = `${year}-${month}-01`;
             const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-            const toDate = `${year}${month}${lastDay.toString().padStart(2, '0')}`;
+            const toDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
 
             this.logger.log(`Fetching KBO schedule: ${fromDate} ~ ${toDate}`);
 
@@ -26,15 +26,17 @@ export class KboService {
                 this.httpService.get(this.apiUrl, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept': 'application/json',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Referer': 'https://m.sports.naver.com/kbaseball/schedule/index',
+                        'Origin': 'https://m.sports.naver.com',
                     },
                     params: {
                         upperCategoryId: 'kbaseball',
-                        categoryId: 'kbo', // 소문자가 표준일 수 있음
+                        categoryId: 'kbo',
                         fromDate,
                         toDate,
                         fields: 'basic,schedule,baseball,manualRelayUrl',
-                        size: 100,
+                        size: 500,
                     },
                 }),
             );

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { login, signup, LoginResponse } from '@/lib/authApi';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -184,10 +185,15 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full bg-white text-black font-black font-oswald text-xl italic uppercase py-3 mt-4 hover:bg-sport-red hover:text-white transition-all duration-300 skew-x-[-6deg] group disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-white text-black font-black font-oswald text-xl italic uppercase py-3 mt-4 hover:bg-sport-red hover:text-white transition-all duration-300 -skew-x-6 group disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <span className="block skew-x-[6deg] group-hover:scale-110 transition-transform">
-                                        {isLoading ? 'LOADING...' : mode === 'login' ? 'Sign In' : 'Sign Up'}
+                                    <span className="block skew-x-6 group-hover:scale-110 transition-transform">
+                                        {isLoading ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <LoadingSpinner size="sm" text="" />
+                                                <span>PROCESSING...</span>
+                                            </div>
+                                        ) : mode === 'login' ? 'Sign In' : 'Sign Up'}
                                     </span>
                                 </button>
                             </form>

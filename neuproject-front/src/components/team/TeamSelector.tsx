@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 import { getAllTeams, TeamResponse } from '@/lib/teamsApi';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface TeamSelectorProps {
     myTeams: Team[];
@@ -27,9 +28,14 @@ interface League {
 
 export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
     const [sportsData, setSportsData] = useState<Sport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Selection State
     const [selectedSportId, setSelectedSportId] = useState<string>('');
@@ -139,13 +145,9 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
     return (
         <motion.div
             className="fixed inset-x-0 bottom-0 z-50 flex flex-col items-center pointer-events-none"
-            initial="collapsed"
-            animate={isOpen ? "expanded" : "collapsed"}
-            variants={{
-                collapsed: { y: "100%" },
-                expanded: { y: "0%" }
-            }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            initial={{ y: "100%" }}
+            animate={{ y: isOpen ? "0%" : "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             drag="y"
             dragControls={controls}
             dragListener={false}
@@ -161,7 +163,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
         >
             {/* Unified Container */}
             <div
-                className="w-full h-[60vh] bg-black/95 backdrop-blur-xl pointer-events-auto flex flex-col relative border-t-4 transition-all duration-500"
+                className="w-full h-[60vh] bg-black/95 backdrop-blur-xl pointer-events-auto flex flex-col relative border-t-4"
                 style={{
                     borderTopColor: themeColors.primary,
                     boxShadow: `0 -20px 50px ${themeColors.primary}33` // 20% 투명도 쉐도우
@@ -171,18 +173,18 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                 {/* --- Ticker-style Peeking Handle (Restored) --- */}
                 <div className="absolute -top-12 left-0 right-0 h-12 z-50 flex justify-center pointer-events-none">
                     <div
-                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-6 pointer-events-auto transform -skew-x-12 origin-bottom transition-colors group shadow-lg"
+                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-6 pointer-events-auto transition-colors group shadow-lg"
                         style={{ backgroundColor: themeColors.primary }}
                         onPointerDown={(e) => controls.start(e)}
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         <span
-                            className="font-oswald font-black italic uppercase tracking-widest text-lg transform skew-x-12"
+                            className="font-oswald font-black italic uppercase tracking-widest text-lg"
                             style={{ color: themeColors.primaryText }}
                         >
                             {isOpen ? "CLOSE FEED" : "CUSTOMIZE TEAM"}
                         </span>
-                        <div className="flex gap-1 transform skew-x-12">
+                        <div className="flex gap-1">
                             <div className="w-2 h-2 bg-black/20"></div>
                             <div className="w-2 h-2 bg-black/20"></div>
                             <div className="w-2 h-2 bg-black/20"></div>
@@ -200,9 +202,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
 
                     {isLoading ? (
                         <div className="flex-1 flex items-center justify-center">
-                            <div className="text-white font-oswald text-xl uppercase tracking-wider">
-                                Loading Teams...
-                            </div>
+                            <LoadingSpinner size="md" text="FETCHING TEAMS" />
                         </div>
                     ) : error ? (
                         <div className="flex-1 flex items-center justify-center">

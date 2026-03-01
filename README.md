@@ -13,12 +13,12 @@
 *   **⚡ Real-time Match Synchronization (WebSockets)**:
     *   **Bi-directional Communication**: NestJS `MatchesGateway`와 `socket.io-client`를 결합하여 경기 스코어 및 상태 변경 시 즉각적으로 클라이언트에 Push 알림 전송.
     *   **Smart Invalidation**: 소켓 이벤트를 수신하면 `@tanstack/react-query`의 캐시를 즉시 무효화(Invalidate)하여 사용자 개입 없이 UI 최신화.
-*   **� Ultra-Fast Rendering (Partial Prerendering - PPR)**:
+*   **🚀 Ultra-Fast Rendering (Partial Prerendering - PPR)**:
     *   Next.js 16의 최신 캐싱 모델인 `cacheComponents`를 도입하여 정적 셸(Shell)은 즉시 서빙하고, 실시간 경기 데이터는 스트리밍 방식으로 렌더링하는 PPR 구조 확립.
 *   **📊 Enterprise Observability (OpenTelemetry)**:
     *   **Full-stack Tracing**: Node.js SDK를 활용하여 HTTP 요청, NestJS 내부 로직, DB 쿼리로 이어지는 전체 요청 라이프사이클을 추적.
     *   **Performance Bottleneck Detection**: OTLP 내보내기를 통한 백엔드 성능 병목 지점 시각화 및 모니터링 기반 마련.
-*   **�📅 Unified Sports Data Aggregation**:
+*   **📅 Unified Sports Data Aggregation**:
     *   **다중 소스 통합**: Football-Data.org (유럽 축구), PandaScore (LCK), ESPN (NBA/MLB/NFL/NHL), Naver (KBO) 등 다중 외부 API 연동.
     *   **이기종 데이터 정규화**: 서로 다른 형식의 API 응답을 하나의 규격화된 도메인 모델(League, Team, Match)로 Normalization 처리.
     *   **Decoupled Architecture**: NestJS 어댑터 패턴을 활용하여 특정 API 공급자의 사양 변경이 전체 비즈니스 로직에 미치는 영향을 최소화.
@@ -43,21 +43,25 @@
   <img src="https://img.shields.io/badge/Next.js%20(16.x)-000000?style=flat-square&logo=Next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/React%20(19.x)-61DAFB?style=flat-square&logo=React&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript%20(5.x)-3178C6?style=flat-square&logo=TypeScript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat-square&logo=Tailwind-CSS&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Tailwind%20CSS%20(v4)-06B6D4?style=flat-square&logo=Tailwind-CSS&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Framer%20Motion-0055FF?style=flat-square&logo=Framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Zustand-443E38?style=flat-square&logo=Zustand&logoColor=white" alt="Zustand" />
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=Axios&logoColor=white" alt="Axios" />
   <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
 </p>
 
 *   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/app`).
 *   **Next.js 16 & PPR**: 최신 `cacheComponents` 설정을 통한 **Partial Prerendering** 활성화. 정적 컨텐츠의 극단적인 속도와 동적 데이터의 유연성을 동시에 확보.
+*   **Tailwind CSS v4 Engine**: 최신 v4 버전의 **Zero-runtime 엔진**을 사용하여 빌드 속도 및 런타임 성능을 극대화.
 *   **Real-time Integration**: 커스텀 훅(`useSocket`)을 통한 전역 소켓 연결 관리 및 실시간 데이터 스트리밍 연동.
-*   **Next.js 15 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler (Babel Plugin)**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
+*   **Next.js 16 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
 *   **State Management (Zustand)**: 
-    *   `authStore`: JWT 및 라이브 세션 상태를 경량화된 스토어로 관리.
-    *   `themeStore`: 사용자별 커스텀 팀 테마 설정을 전역적으로 동기화.
+    *   **Boilerplate-free State Logic**: Redux 대비 극도로 가벼운 구조를 채택하여 성능 오버헤드를 최소화.
+    *   `authStore`: JWT 기반 라이브 세션 및 사용자 프로필 상태를 경량화된 스토어로 관리.
+    *   `themeStore`: 사용자별 커스텀 팀 테마(색상 변수 실시간 주입) 설정을 전역적으로 동기화하여 고성능 테마 엔진 구동.
 *   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, **WebSocket 기반 실시간 리페칭** 전략 구현, 로딩 및 에러 상태의 선언적 처리.
 *   **Advanced UI**: Framer Motion을 활용한 GPU 가속 기반 애니메이션 및 `Suspense` 기반의 선언적 로딩 UI 처리.
-*   **Build Optimization**: `next.config.ts`에 `output: "standalone"` 속성을 적용하여 Docker 환경에서의 이미지 사이즈 최적화 및 프로덕션 번들 트리쉐이킹(Tree-shaking) 처리.
+*   **Build Optimization**: `next.config.ts`의 최신 실험적 기능을 활용하여 트리쉐이킹(Tree-shaking) 및 최적화된 번들 기법 적용.
 
 ### ⚙️ 백엔드 (Backend)
 <p>
@@ -67,11 +71,15 @@
   <img src="https://img.shields.io/badge/Passport.js-34E27A?style=flat-square&logo=Passport&logoColor=black" alt="Passport" />
   <img src="https://img.shields.io/badge/OpenTelemetry-000000?style=flat-square&logo=OpenTelemetry&logoColor=white" alt="OpenTelemetry" />
   <img src="https://img.shields.io/badge/Redis-FF4438?style=flat-square&logo=Redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/RxJS-D10030?style=flat-square&logo=RxJS&logoColor=white" alt="RxJS" />
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=Axios&logoColor=white" alt="Axios" />
   <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
 </p>
 
 *   **Observability (OpenTelemetry)**: `tracing.ts` 초기화를 통한 자동 인스트루멘테이션(Instrumentation) 적용. 서비스 전반의 분산 트레이싱 지원.
 *   **Real-time Engine (WebSockets)**: `@nestjs/websockets` 기반의 `MatchesGateway` 구현. 방 배치(Room) 및 네임스페이스 확장이 용이한 구조.
+*   **Reactive Programming (RxJS)**: NestJS 내부 비동기 이벤트 스트림 및 데코레이터 처리를 위해 **RxJS 옵저버블** 패턴을 적극 활용.
+*   **Automated Scheduling (Cron)**: `@nestjs/schedule` 모듈을 사용하여 외부 스포츠 API와의 1분 단위 실시간 데이터 정합성 유지.
 *   **Security & Auth**: Passport.js와 JWT 전략을 결합한 보안 계층 구성. `Bcrypt`를 통한 비밀번호 단방향 해싱 저장.
 *   **API Rate Limiting (Throttler)**: `@nestjs/throttler`를 사용하여 무분별한 API 호출로부터 서버를 보호 (기본 1분당 60회 제한).
 *   **Sports Adapters (Module-based)**:
@@ -148,7 +156,7 @@ Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의
 *   **Server-side Response Caching**: NestJS `CacheModule`을 활용하여 빈번한 요청에 대해 데이터베이스 I/O 부하를 70% 이상 절감. Redis 기반 분산 캐시와 메모리 폴백(Fallback) 구조 지원.
 *   **HTTP Payload Compression**: `compression` 미들웨어를 통해 JSON 응답 데이터를 압축 전송(Gzip/Brotli), 네트워크 대역폭 절약 및 클라이언트 로딩 속도를 최대 3배 가속화.
 *   **Frontend Virtualization & Modern Stack**: 
-    - `Next.js 15 & React 19 Compiler`를 통한 컴포넌트 레벨의 자동 최적화.
+    - `Next.js 16 & React 19 Compiler`를 통한 컴포넌트 레벨의 자동 최적화.
     - `MatchListView` 등 방대한 목록 렌더링 시 윈도잉(Windowing) 기법 고려.
 
 ---
@@ -232,7 +240,7 @@ neuproject/
 │   ├── 📁 test            (Jest 기반 E2E 통합 테스트 묶음)
 │   └── 📄 package.json    (Nest CLI 및 런타임 의존성 구성)
 │
-├── 📁 neuproject-front (Next.js 15 App Router 기반 프론트엔드)
+├── 📁 neuproject-front (Next.js 16 App Router 기반 프론트엔드)
 │   ├── 📁 src
 │   │   ├── 📁 app         (앱 라우터 엔트리 포인트 및 페이지 라우팅)
 │   │   ├── 📁 components  (UI 및 기능별 독립 리액트 컴포넌트)
@@ -270,6 +278,11 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 ---
 
 ## 🧪 테스트 및 품질 검증 (Testing & QA)
+<p>
+  <img src="https://img.shields.io/badge/Jest-C21325?style=flat-square&logo=Jest&logoColor=white" alt="Jest" />
+  <img src="https://img.shields.io/badge/ESLint-4B32C3?style=flat-square&logo=ESLint&logoColor=white" alt="ESLint" />
+  <img src="https://img.shields.io/badge/Prettier-F7B93E?style=flat-square&logo=Prettier&logoColor=black" alt="Prettier" />
+</p>
 
 오류를 사전에 차단하기 위해 `Jest`를 기반으로 한 일관된 TDD/BDD 테스트 환경을 구성해 두었습니다. 안전한 서버 배포를 위해 반드시 통과해야 합니다.
 
@@ -284,7 +297,7 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
     cd neuproject-back
     npm run test:e2e
     ```
-    Supertest를 활용하여 라우팅 컨트롤러, DB 미들웨어까지 실제 구동과 같은 전체 라이프사이클을 테스트합니다.
+    **Supertest**를 활용하여 라우팅 컨트롤러, DB 미들웨어까지 실제 구동과 같은 전체 라이프사이클을 테스트합니다.
 *   **코드 컨벤션 일관성 유지 (Lint / Format)**:
     ```bash
     cd neuproject-back (또는 neuproject-front)

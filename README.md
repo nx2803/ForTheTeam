@@ -40,8 +40,12 @@
 </p>
 
 *   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/hooks`, `src/app`).
+*   **Next.js 15 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler (Babel Plugin)**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
+*   **State Management (Zustand)**: 
+    *   `authStore`: JWT 및 라이브 세션 상태를 경량화된 스토어로 관리.
+    *   `themeStore`: 사용자별 커스텀 팀 테마 설정을 전역적으로 동기화.
+*   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, 자동 리페칭(Stale-while-revalidate), 로딩 및 에러 상태의 선언적 처리.
 *   **Build Optimization**: `next.config.ts`에 `output: "standalone"` 속성을 적용하여 Docker 환경에서의 이미지 사이즈 최적화 및 프로덕션 번들 트리쉐이킹(Tree-shaking) 처리.
-*   **State Management**: Context API를 활용한 관심사 분리. (예: `ThemeContext` - 테마 제어, `AuthContext` - JWT 보관 로직 격리).
 
 ### ⚙️ 백엔드 (Backend)
 <p>
@@ -52,7 +56,13 @@
 </p>
 
 *   **Architecture**: NestJS Dependency Injection(DI) 생태계 위에서 Controller, Service, Module 분리 및 싱글톤(Singleton) 인스턴스 라이프사이클 관리.
-*   **Data Synchronization (SyncService)**: `Cron` 작업 또는 백그라운드 Worker를 통한 배치(Batch) 처리. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재.
+*   **Security & Auth**: Passport.js와 JWT 전략을 결합한 보안 계층 구성. `Bcrypt`를 통한 비밀번호 단방향 해싱 저장.
+*   **Sports Adapters (Module-based)**:
+    *   `FootballModule`: Football-Data.org API 연동 전담.
+    *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
+    *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동.
+    *   `KBOModule`: Naver 스포츠 기반 국내 야구 데이터 크롤링 및 정규화.
+*   **Data Synchronization (SyncService)**: `Cron` 작업 또는 백그라운드 Worker를 통한 배치(Batch) 처리. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
 
 ### 🗄️ 데이터베이스 및 인프라 (DB & Infra)
@@ -67,20 +77,13 @@
 *   **ORM (Prisma)**: 
     *   컴파일 에러를 통해 쿼리 오류를 사전 차단하는 Type-Safe 엔진 구동 (`PrismaClient`).
     *   복잡한 중첩 릴레이션 (`home_team`, `away_team`, `leagues`, `follows`) 관계를 GraphQL 스타일의 Prisma 객체 모델 매핑으로 간소화 구축. 
-*   **Containerization**: 멀티-스테이지 빌드(Multi-stage build) 패턴을 따르는 `Dockerfile`로 작성된 Node.js(Alpine 20) 경량 런타임 통합. (`docker-compose.yml` 리소스를 통한 무상태 컨테이너 묶음 오케스트레이션 구성 완료)
+*   **Containerization & Deployment**: 
+    *   **Multi-stage Build Pattern**: `builder` 스테이지에서 컴파일 및 에셋 번들링을 수행하고, `runner` 스테이지에서는 최소한의 런타임 결과물만 포함하여 이미지 크기 및 보안 공격 표면(Attack Surface)을 최소화.
+    *   **Standalone Output**: Next.js의 `standalone` 빌드 형식을 사용하여 대규모 의존성 폴더(`node_modules`) 없이도 가벼운 서버 환경 구동 가능.
+    *   **Node.js 20-Alpine**: 최신 LTS 버전인 Alpine Linux 기반의 경량 이미지를 사용하여 배포 효율성 극대화.
 
 ---
 
-## 🏗️ 코딩 스탠다드 및 엄격한 개발 원칙 (Coding Standards)
-
-본 프로젝트에 참여하는 팀 단위 컨트리뷰터는 아래 규약을 필수로 준수해야 합니다.
-
-1.  **Strict DTO Rules**: 클라이언트 및 외부 의존성의 모든 입력값은 `@nestjs/common` 파이프에 기반한 `class-transformer` 변환 및 유효성 검증을 거쳐야 합니다. (Any 타입 허용 절대 금지)
-2.  **Prisma Anti-Pattern 방지**: 복잡한 집계(Aggregation)를 제외한 로직에서 Raw Query(`$queryRaw`)의 남용을 금지하며, `PrismaService`의 추상화를 활용해 SQL Injection 위험 표면을 완전히 차단합니다.
-3.  **Circuit Breaker & Fallback**: 모든 외부 API 요청에는 타임아웃(Timeout) 한도 및 실패(Fallback)에 대비한 보호 로직(`try-catch`)이 강제됩니다.
-4.  **Logging**: 에러 발생 시 콜스택(Call-stack) 혼란을 막기 위해 NestJS 자체 `Logger` 인터페이스 인스턴스화를 통한 네임스페이스 로깅(`this.logger`)을 유지합니다.
-
----
 
 ## 🔍 Technical Deep Dive (Advanced Perspective)
 
@@ -172,3 +175,87 @@ npm run start:dev   # 백엔드
 cd ../neuproject-front
 npm run dev         # 프론트엔드 (3000포트 대기)
 ```
+
+---
+
+## 📂 프로젝트 디렉토리 구조 (Project Structure)
+
+```text
+neuproject/
+├── 📁 neuproject-back  (NestJS 기반 백엔드 API & 스케줄러)
+│   ├── 📁 src
+│   │   ├── 📁 auth        (JWT, Passport 기반 인증 전략)
+│   │   ├── 📁 prisma      (전역 데이터베이스 모듈)
+│   │   ├── 📁 [sports]    (football, lck, us-sports 등의 백엔드 모듈 및 서비스)
+│   ├── 📁 prisma          (schema.prisma 등 DB 스키마 및 시드 데이터)
+│   ├── 📁 test            (Jest 기반 E2E 통합 테스트 묶음)
+│   └── 📄 package.json    (Nest CLI 및 런타임 의존성 구성)
+│
+├── 📁 neuproject-front (Next.js 15 App Router 기반 프론트엔드)
+│   ├── 📁 src
+│   │   ├── 📁 app         (앱 라우터 엔트리 포인트 및 페이지 라우팅)
+│   │   ├── 📁 components  (UI 및 기능별 독립 리액트 컴포넌트)
+│   │   ├── 📁 hooks       (테마 상태, 데이터 페칭 처리용 커스텀 훅)
+│   │   ├── 📁 stores      (Zustand 전역 상태 슬라이스)
+│   ├── 📁 public          (로고 및 정적 에셋)
+│   └── 📄 package.json    (React 컴파일러, Tailwind CSS 등 의존성)
+```
+
+---
+
+## 🔑 필수 환경 변수 (Environment Variables)
+
+원활한 컨테이너 및 로컬 개발 구동을 위해 다음 환경 변수(`.env`) 설정이 필요합니다. 루트 디렉토리에 `.env`를 배치하면 Docker 환경에서 일괄 투입됩니다.
+
+**`neuproject-back/.env`** (백엔드 필수):
+```env
+# 데이터베이스 연결 문자열 (PostgreSQL URL 형태)
+DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
+
+# 세션 및 인증 암호화 시크릿 키
+JWT_SECRET="super-strong-secret-key-replace-in-production"
+
+# 외부 데이터 API 키 (데이터 패칭 스케줄러 동작 시 필수)
+FOOTBALL_DATA_API_KEY="your-api-key"
+PANDASCORE_API_KEY="your-api-key"
+```
+
+**`neuproject-front/.env.local`** (프론트엔드 클라이언트 바인딩):
+```env
+# 백엔드 API 엔드포인트 주소
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+```
+
+---
+
+## 🧪 테스트 및 품질 검증 (Testing & QA)
+
+오류를 사전에 차단하기 위해 `Jest`를 기반으로 한 일관된 TDD/BDD 테스트 환경을 구성해 두었습니다. 안전한 서버 배포를 위해 반드시 통과해야 합니다.
+
+*   **단위 테스트 (Unit Test)**:
+    ```bash
+    cd neuproject-back
+    npm run test
+    ```
+    비즈니스 로직(Service 인터페이스) 검증 및 의존성 모킹(Mocking) 상태에서의 동작 여부를 점검합니다.
+*   **통합/E2E 테스트 (E2E Test)**:
+    ```bash
+    cd neuproject-back
+    npm run test:e2e
+    ```
+    Supertest를 활용하여 라우팅 컨트롤러, DB 미들웨어까지 실제 구동과 같은 전체 라이프사이클을 테스트합니다.
+*   **코드 컨벤션 일관성 유지 (Lint / Format)**:
+    ```bash
+    cd neuproject-back (또는 neuproject-front)
+    npm run lint     # ESLint 기반 정적 분석 및 위험 패턴 경고
+    npm run format   # Prettier 기반 코드 자동 포매팅 (백엔드)
+    ```
+
+---
+
+## 📚 API 문서화 (Swagger UI / OpenAPI 3.0)
+
+생산성 극대화 및 프론트엔드 클라이언트와의 원활한 협업을 위해, 백엔드 구동 시 OpenAPI 문서가 실시간으로 자동 생성되어 서빙됩니다.
+
+*   **엔드포인트**: `http://localhost:3001/api-docs` (기본 설정 포트 구동 시)
+*   **핵심 기능**: `@nestjs/swagger` 데코레이터를 통해 DTO 상에 선언된 객체 프로퍼티 메타데이터를 기반으로 **Request/Response 스키마**를 제공하며, 문서 페이지 위에서 바로 `Authorize` 버튼을 눌러 발급된 JWT 토큰으로 API들을 직접 호출하고 테스트(`Try it out`)해 볼 수 있습니다.

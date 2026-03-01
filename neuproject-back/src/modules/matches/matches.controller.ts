@@ -28,13 +28,16 @@ export class MatchesController {
     @ApiOperation({ summary: '최근 경기 결과 조회 (티커용)' })
     @ApiQuery({ name: 'days', type: Number, required: false, description: '조회할 최근 일수 (기본값: 7)' })
     @ApiQuery({ name: 'memberUid', type: String, required: false })
+    @ApiQuery({ name: 'teamIds', type: String, required: false, description: '쉼표로 구분된 팀 ID 목록' })
     async getRecentMatches(
         @Query('days') days?: string,
         @Query('memberUid') memberUid?: string,
+        @Query('teamIds') teamIds?: string,
     ) {
         return this.matchesService.findRecentMatches(
             days ? parseInt(days) : 7,
             memberUid,
+            teamIds,
         );
     }
 }

@@ -74,12 +74,20 @@ export class MatchesService {
         return matches;
     }
 
-    async findRecentMatches(days: number = 7, memberUid?: string) {
+    async findRecentMatches(days: number = 7, memberUid?: string, teamIds?: string) {
         const endDate = new Date(); // 현재 시간
         const startDate = new Date();
         startDate.setDate(endDate.getDate() - days);
 
-        this.logger.log(`Fetching recent matches past ${days} days`);
+        this.logger.log(`Fetching recent matches past ${days} days (UID: ${memberUid}, Teams: ${teamIds})`);
+
+        // 만약 로그인 정보(UID)나 선택된 팀(teamIds)이 하나도 없다면 빈 배열 반환
+        // (사용자가 커스텀 환경을 원하므로 초기 로딩 시 전체 노출 방지)
+        if (!memberUid && !teamIds) {
+            return [];
+        }
+
+        const teamIdArray = teamIds ? teamIds.split(',').filter(id => id.trim() !== '') : [];
 
         const matches = await this.prisma.matches.findMany({
             where: {
@@ -89,12 +97,22 @@ export class MatchesService {
                 },
                 // 종료되었거나 점수가 있는 경우 (결과가 나온 매치)
                 status: 'finished',
-                ...(memberUid && {
-                    OR: [
-                        { home_team: { follows: { some: { member_uid: memberUid } } } },
-                        { away_team: { follows: { some: { member_uid: memberUid } } } },
-                    ],
-                }),
+                AND: [
+                    {
+                        OR: [
+                            // UID 기준 팔로우 팀 필터
+                            ...(memberUid ? [
+                                { home_team: { follows: { some: { member_uid: memberUid } } } },
+                                { away_team: { follows: { some: { member_uid: memberUid } } } },
+                            ] : []),
+                            // 직접 전달된 teamIds 필터
+                            ...(teamIdArray.length > 0 ? [
+                                { home_team_id: { in: teamIdArray } },
+                                { away_team_id: { in: teamIdArray } },
+                            ] : []),
+                        ]
+                    }
+                ]
             },
             include: {
                 home_team: true,

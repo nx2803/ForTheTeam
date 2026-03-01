@@ -5,6 +5,7 @@ import { FootballModule } from '../football/football.module';
 import { PandaScoreModule } from '../pandascore/pandascore.module';
 import { EspnModule } from '../espn/espn.module';
 import { KboModule } from '../kbo/kbo.module';
+import { MatchesModule } from '../matches/matches.module';
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { KboModule } from '../kbo/kbo.module';
         PandaScoreModule,
         EspnModule,
         KboModule,
+        MatchesModule,
     ],
     controllers: [SyncController],
     providers: [SyncService],

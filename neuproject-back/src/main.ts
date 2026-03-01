@@ -1,3 +1,7 @@
+import { otraceSDK } from './tracing';
+// NestJS 앱 시작 전 트레이싱 수집기 시작
+otraceSDK.start();
+
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';

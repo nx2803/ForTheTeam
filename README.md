@@ -10,7 +10,15 @@
 
 본 프로젝트는 대규모 트래픽과 다양한 외부 데이터 소스를 안정적으로 통합하기 위해 설계된 종합 스포츠 플랫폼입니다. MSA(Microservices Architecture) 지향적인 모듈화 설계와 CSR/SSR이 결합된 하이브리드 프론트엔드 구성을 특징으로 합니다.
 
-*   **📅 Unified Sports Data Aggregation**:
+*   **⚡ Real-time Match Synchronization (WebSockets)**:
+    *   **Bi-directional Communication**: NestJS `MatchesGateway`와 `socket.io-client`를 결합하여 경기 스코어 및 상태 변경 시 즉각적으로 클라이언트에 Push 알림 전송.
+    *   **Smart Invalidation**: 소켓 이벤트를 수신하면 `@tanstack/react-query`의 캐시를 즉시 무효화(Invalidate)하여 사용자 개입 없이 UI 최신화.
+*   **� Ultra-Fast Rendering (Partial Prerendering - PPR)**:
+    *   Next.js 16의 최신 캐싱 모델인 `cacheComponents`를 도입하여 정적 셸(Shell)은 즉시 서빙하고, 실시간 경기 데이터는 스트리밍 방식으로 렌더링하는 PPR 구조 확립.
+*   **📊 Enterprise Observability (OpenTelemetry)**:
+    *   **Full-stack Tracing**: Node.js SDK를 활용하여 HTTP 요청, NestJS 내부 로직, DB 쿼리로 이어지는 전체 요청 라이프사이클을 추적.
+    *   **Performance Bottleneck Detection**: OTLP 내보내기를 통한 백엔드 성능 병목 지점 시각화 및 모니터링 기반 마련.
+*   **�📅 Unified Sports Data Aggregation**:
     *   **다중 소스 통합**: Football-Data.org (유럽 축구), PandaScore (LCK), ESPN (NBA/MLB/NFL/NHL), Naver (KBO) 등 다중 외부 API 연동.
     *   **이기종 데이터 정규화**: 서로 다른 형식의 API 응답을 하나의 규격화된 도메인 모델(League, Team, Match)로 Normalization 처리.
     *   **Decoupled Architecture**: NestJS 어댑터 패턴을 활용하여 특정 API 공급자의 사양 변경이 전체 비즈니스 로직에 미치는 영향을 최소화.
@@ -32,19 +40,23 @@
 
 ### 💻 프론트엔드 (Frontend)
 <p>
-  <img src="https://img.shields.io/badge/Next.js%20(15.x)-000000?style=flat-square&logo=Next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js%20(16.x)-000000?style=flat-square&logo=Next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/React%20(19.x)-61DAFB?style=flat-square&logo=React&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript%20(5.x)-3178C6?style=flat-square&logo=TypeScript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat-square&logo=Tailwind-CSS&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Framer%20Motion-0055FF?style=flat-square&logo=Framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
 </p>
 
-*   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/hooks`, `src/app`).
+*   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/app`).
+*   **Next.js 16 & PPR**: 최신 `cacheComponents` 설정을 통한 **Partial Prerendering** 활성화. 정적 컨텐츠의 극단적인 속도와 동적 데이터의 유연성을 동시에 확보.
+*   **Real-time Integration**: 커스텀 훅(`useSocket`)을 통한 전역 소켓 연결 관리 및 실시간 데이터 스트리밍 연동.
 *   **Next.js 15 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler (Babel Plugin)**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
 *   **State Management (Zustand)**: 
     *   `authStore`: JWT 및 라이브 세션 상태를 경량화된 스토어로 관리.
     *   `themeStore`: 사용자별 커스텀 팀 테마 설정을 전역적으로 동기화.
-*   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, 자동 리페칭(Stale-while-revalidate), 로딩 및 에러 상태의 선언적 처리.
+*   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, **WebSocket 기반 실시간 리페칭** 전략 구현, 로딩 및 에러 상태의 선언적 처리.
+*   **Advanced UI**: Framer Motion을 활용한 GPU 가속 기반 애니메이션 및 `Suspense` 기반의 선언적 로딩 UI 처리.
 *   **Build Optimization**: `next.config.ts`에 `output: "standalone"` 속성을 적용하여 Docker 환경에서의 이미지 사이즈 최적화 및 프로덕션 번들 트리쉐이킹(Tree-shaking) 처리.
 
 ### ⚙️ 백엔드 (Backend)
@@ -53,8 +65,13 @@
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Swagger%20(OpenAPI%203.0)-85EA2D?style=flat-square&logo=Swagger&logoColor=black" alt="Swagger" />
   <img src="https://img.shields.io/badge/Passport.js-34E27A?style=flat-square&logo=Passport&logoColor=black" alt="Passport" />
+  <img src="https://img.shields.io/badge/OpenTelemetry-000000?style=flat-square&logo=OpenTelemetry&logoColor=white" alt="OpenTelemetry" />
+  <img src="https://img.shields.io/badge/Redis-FF4438?style=flat-square&logo=Redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
 </p>
 
+*   **Observability (OpenTelemetry)**: `tracing.ts` 초기화를 통한 자동 인스트루멘테이션(Instrumentation) 적용. 서비스 전반의 분산 트레이싱 지원.
+*   **Real-time Engine (WebSockets)**: `@nestjs/websockets` 기반의 `MatchesGateway` 구현. 방 배치(Room) 및 네임스페이스 확장이 용이한 구조.
 *   **Security & Auth**: Passport.js와 JWT 전략을 결합한 보안 계층 구성. `Bcrypt`를 통한 비밀번호 단방향 해싱 저장.
 *   **API Rate Limiting (Throttler)**: `@nestjs/throttler`를 사용하여 무분별한 API 호출로부터 서버를 보호 (기본 1분당 60회 제한).
 *   **Sports Adapters (Module-based)**:
@@ -62,7 +79,7 @@
     *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
     *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동.
     *   `KBOModule`: Naver 스포츠 기반 국내 야구 데이터 크롤링 및 정규화.
-*   **Data Synchronization (SyncService)**: `Cron` 작업 또는 백그라운드 Worker를 통한 배치(Batch) 처리. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
+*   **Data Synchronization (SyncService)**: `Cron` 작업과 WebSocket 브로드캐스트를 결합한 실시간 데이터 파이프라인. DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키는 **Smart Emit** 로직 탑재. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
 *   **Distributed Caching (CacheManager)**: `CacheModule`과 Redis 스토어를 연동하여 고비용 쿼리 결과(경기 일정 등)를 캐싱. Redis 미구동 환경에서도 서버가 중단되지 않도록 **In-memory fallback** 로직이 적용되어 안정성 확보.
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
 
@@ -88,7 +105,19 @@
 
 ## 🔍 Technical Deep Dive (Advanced Perspective)
 
-### 1. WCAG 2.0 기반 동적 대비 알고리즘 (Contrast Engine)
+### 1. 실시간 데이터 동기화 파이프라인 (Real-time Pipeline)
+단순한 폴링(Polling) 방식에서 벗어나, 데이터의 변경 사항이 발생하는 즉시 클라이언트로 전달되는 이벤트 기반 아키텍처를 구축했습니다.
+*   **SyncService**: 외부 API로부터 데이터를 동기화하고 변경된 점수나 상태가 감지되면 서버 내부 이벤트를 발생시킵니다.
+*   **MatchesGateway**: 해당 이벤트를 구독하여 연결된 모든 클라이언트 혹은 특정 팀을 팔로우한 세션에 실시간 패킷을 전송합니다.
+*   **Client (useSocket)**: 패킷 수신 즉시 React Query의 캐시 키(`['matches']`)를 무효화하여 화면을 갱신합니다.
+
+### 2. Next.js 16 Partial Prerendering (PPR) 적용
+사용자 경험을 극대화하기 위해 페이지의 정적 셸(Header, Navigation)은 빌드 타임에 미리 생성하고, 실시간 경기 데이터가 필요한 부분만 `Suspense`와 `cacheComponents`를 통해 동적으로 스트리밍합니다. 이를 통해 첫 로딩 속도(LCP)를 유지하면서도 데이터의 신선도를 보장합니다.
+
+### 3. 분산 트레이싱을 통한 장애 추적 (Observability)
+OpenTelemetry 표준을 준수하여 백엔드의 모든 요청 흐름을 시각화했습니다. `NestInstrumentation`과 `HttpInstrumentation`을 결합하여 내부 모듈 간의 호출 지연이나 외부 API(ESPN, PandaScore 등)와의 통신 성능을 정밀하게 모니터링할 수 있습니다.
+
+### 4. WCAG 2.0 기반 동적 대비 알고리즘 (Contrast Engine)
 사용자가 선택한 팀의 색상이 밝을 때(예: 노란색, 연두색) 흰색 글씨가 보이지 않는 가독성 침해 현상을 방지하기 위해, 색상의 **상대 휘도(Relative Luminance)**를 계산하여 텍스트 색상을 실시간(O(1))으로 선택합니다.
 
 ```typescript
@@ -100,18 +129,18 @@ const luminance = 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
 return luminance > 0.6 ? '#000000' : '#FFFFFF';
 ```
 
-### 2. Runtime CSS Variable Injection Implementation
+### 5. Runtime CSS Variable Injection Implementation
 정적인 CSS 클래스나 테마 셋 대신, 런타임에 `--color-primary`, `--color-primary-glow` 등 전역 CSS 변수를 `document.documentElement`에 직접 주입합니다. 이를 통해 수백 개의 팀마다 별도의 스타일 시트를 유지보수할 필요 없이, 단 하나의 컴포넌트 로직으로 무한한 브랜드 테마 조합을 실시간 지원합니다.
 
-### 3. 고탄력적 데이터 모델링 (Resilient Data Model)
+### 6. 고탄력적 데이터 모델링 (Resilient Data Model)
 Prisma를 활용하여 축구/야구와 같은 1:1 매치업뿐만 아니라, F1과 같은 이벤트형 경기를 유연하게 수용할 수 있는 하이브리드 스키마를 설계했습니다.
 *   **Dual-Relation & Multi-Tenant logic**: `home_team`과 `away_team`을 `teams` 테이블에 이중 릴레이션으로 매핑하고, 리그 단위 필터링을 병행.
 *   **Fail-Safe UI Consistency**: 외부 API 엔드포인트의 일시적 장애나 데이터 매핑 누락(Null) 발생 시에도 UI 파손을 방지하기 위해 `home_team_name` 등의 백업 문자열 필드를 데이터 일관성 가드로 사용합니다.
 
-### 4. GPU 가속 애니메이션 및 레이아웃 최적화
+### 7. GPU 가속 애니메이션 및 레이아웃 최적화
 Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의 레이아웃 재계산(Reflow)을 유발하는 속성(Margin, Padding 등) 대신, GPU 가속을 받는 `transform` 속성 기반의 애니메이션을 구현하여 저사양 기기나 모바일 환경에서도 고주사율(60fps+)의 매끄러운 동작을 보장합니다.
 
-### 5. 프로덕션 수준의 성능 최적화 (Applied Optimizations)
+### 8. 프로덕션 수준의 성능 최적화 (Applied Optimizations)
 단순한 기능 구현을 넘어, 엔터프라이즈 환경에 적합한 아키텍처적 장치를 실제 코드로 구현했습니다.
 *   **Database Query Optimization**: 
     *   `match_at` (경기 시간)과 `league_id` 필드에 **Composite Index**를 설계하여, 수만 건의 매치 중 특정 날짜 범위의 경기를 `O(log N)` 속도로 검색.

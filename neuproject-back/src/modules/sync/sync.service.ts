@@ -5,6 +5,7 @@ import { FootballService } from '../football/football.service';
 import { PandaScoreService } from '../pandascore/pandascore.service';
 import { EspnService } from '../espn/espn.service';
 import { KboService } from '../kbo/kbo.service';
+import { MatchesGateway } from '../matches/matches.gateway';
 
 @Injectable()
 export class SyncService {
@@ -16,6 +17,7 @@ export class SyncService {
         private pandaScoreService: PandaScoreService,
         private espnService: EspnService,
         private kboService: KboService,
+        private readonly matchesGateway: MatchesGateway,
     ) { }
 
     /**
@@ -243,7 +245,7 @@ export class SyncService {
 
             if (!needsUpdate) return; // 변경 내용 없음 -> DB 쓰지 않음
 
-            return matchesModel.update({
+            const updated = await matchesModel.update({
                 where: { external_api_id: data.external_api_id },
                 data: {
                     status: data.status,
@@ -254,6 +256,16 @@ export class SyncService {
                     updated_at: new Date(),
                 },
             });
+
+            // 실시간 업데이트 방송
+            this.matchesGateway.emitMatchesUpdated({
+                matchId: updated.id,
+                homeScore: data.home_score,
+                awayScore: data.away_score,
+                status: data.status,
+            });
+
+            return updated;
         }
 
         if (!homeTeam || !awayTeam) {

@@ -21,14 +21,28 @@ export default function Ticker({ myTeams }: TickerProps) {
 
     useEffect(() => {
         const fetchRecentMatches = async () => {
+            // 로그인 상태인데 아직 유저 정보가 없거나, 팀 목록이 로딩 중일 가능성 배제
+            if (isLoggedIn && !user?.uid) return;
+            if (!isLoggedIn && !teamIds) {
+                // 비로그인인데 팔로우 팀도 선택 안 한 경우는 결과가 없으므로 fetch를 건너뜀
+                setIsLoading(false);
+                setRecentMatches([]);
+                return;
+            }
+
             try {
                 setIsLoading(true);
                 let url = 'http://localhost:3001/matches/recent?days=7';
+
                 if (isLoggedIn && user?.uid) {
                     url += `&memberUid=${user.uid}`;
-                } else if (teamIds) {
+                }
+
+                // 로그인 여부와 무관하게 선택된 팀 ID가 있다면 추가 (비로그인 로컬 팔로우 지원)
+                if (teamIds) {
                     url += `&teamIds=${teamIds}`;
                 }
+
                 const res = await fetch(url);
                 const data = await res.json();
                 setRecentMatches(data);

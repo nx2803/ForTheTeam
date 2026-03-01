@@ -1,7 +1,7 @@
 // src/app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Header from "@/components/layout/Header";
 import MainCalendar from "@/components/calendar/MainCalendar";
@@ -9,11 +9,13 @@ import TeamSelector from "@/components/team/TeamSelector";
 import Ticker from "@/components/layout/Ticker";
 import { Team } from '@/types/team';
 import { useAuth } from '@/hooks/useAuth';
+import { useSocket } from '@/hooks/useSocket';
 import { getFollowedTeams, toggleTeamFollow } from '@/lib/teamsApi';
 
 export default function Home() {
   const [myTeams, setMyTeams] = useState<Team[]>([]);
   const { user, isLoggedIn } = useAuth();
+  useSocket(); // 실시간 소켓 연결 활성
 
   // 초기 로드: DB에서 팔로우한 팀 목록 가져오기
   useEffect(() => {
@@ -66,7 +68,6 @@ export default function Home() {
   };
 
   const toggleTeam = async (team: Team) => {
-    // 1. 낙관적 업데이트 (UI 즉시 반영) // Drag and drop compatibility
     const isCurrentlyFollowed = myTeams.find(t => t.id === team.id);
     let newTeams: Team[];
     if (isCurrentlyFollowed) {
@@ -79,7 +80,6 @@ export default function Home() {
       localStorage.setItem(`teamOrder_${user.uid}`, JSON.stringify(newTeams.map(t => t.id)));
     }
 
-    // 2. DB 동기화 (로그인된 경우)
     if (isLoggedIn && user?.uid) {
       try {
         await toggleTeamFollow(team.id, user.uid);
@@ -137,10 +137,15 @@ export default function Home() {
 
       {/* 3. Main Content Area */}
       <div className="flex-1 w-full mx-auto p-4 md:p-6 pt-20 md:pt-24 pb-2 relative z-10 flex gap-6 max-h-[calc(100vh-1rem)]">
-        {/* Calendar acts as the suspend main card */}
-        <div className="flex-1 h-full shadow-2xl">
-          <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />
-        </div>
+        <Suspense fallback={
+          <div className="flex-1 flex items-center justify-center bg-black">
+            <div className="text-white font-oswald text-2xl animate-pulse">LOADING SPORTS DATA...</div>
+          </div>
+        }>
+          <div className="flex-1 h-full shadow-2xl overflow-hidden flex flex-col">
+            <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />
+          </div>
+        </Suspense>
       </div>
 
       {/* 4. Team Selector (Bottom Dock) */}

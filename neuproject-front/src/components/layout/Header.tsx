@@ -42,10 +42,10 @@ export default function Header({ myTeams = [] }: HeaderProps) {
 
     return (
         <>
-            <header className="fixed top-12 inset-x-8 z-40 flex items-start justify-between pointer-events-none">
+            <header className="fixed top-14 md:top-16 inset-x-4 md:inset-x-8 z-40 flex items-start justify-between pointer-events-none">
                 {/* 왼쪽: FTT 로고 (Floating) */}
                 <div className="pointer-events-auto flex flex-col group cursor-pointer">
-                    <h1 className="text-6xl font-black tracking-tighter uppercase italic font-oswald text-white leading-[0.85] drop-shadow-2xl flex gap-3">
+                    <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic font-oswald text-white leading-[0.85] drop-shadow-2xl flex gap-1 md:gap-3">
                         FOR THE <span style={{ color: themeColors.primary }}>TEAM</span>
                     </h1>
                     <div
@@ -59,7 +59,7 @@ export default function Header({ myTeams = [] }: HeaderProps) {
                     {!isLoggedIn ? (
                         <button
                             onClick={() => setIsLoginOpen(true)}
-                            className="relative px-8 py-3 bg-white text-black text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden"
+                            className="relative px-4 py-2 md:px-8 md:py-3 bg-white text-black text-xs md:text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden"
                         >
                             <div
                                 className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
@@ -82,7 +82,7 @@ export default function Header({ myTeams = [] }: HeaderProps) {
                         <>
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="relative px-6 py-3 bg-zinc-900 border-2 border-zinc-700 text-white text-sm font-black font-oswald tracking-widest uppercase hover:border-sport-red transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95"
+                                className="relative px-4 py-2 md:px-6 md:py-3 bg-zinc-900 border-2 border-zinc-700 text-white text-xs md:text-sm font-black font-oswald tracking-widest uppercase hover:border-sport-red transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95"
                             >
                                 <span className="block flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
@@ -98,10 +98,10 @@ export default function Header({ myTeams = [] }: HeaderProps) {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.2 }}
-                                        className="absolute right-0 mt-2 w-56 bg-zinc-900 border-2 border-zinc-700 shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden"
+                                        className="absolute right-0 mt-2 w-48 md:w-56 bg-zinc-900 border-2 border-zinc-700 shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden"
                                     >
                                         {/* 유저 정보 */}
-                                        <div className="p-4 border-b border-zinc-800">
+                                        <div className="p-3 md:p-4 border-b border-zinc-800">
                                             <p className="text-white font-bold font-mono text-xs uppercase tracking-wider">
                                                 {user?.nickname}
                                             </p>

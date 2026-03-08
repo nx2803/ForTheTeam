@@ -163,7 +163,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
         >
             {/* Unified Container */}
             <div
-                className="w-full h-[60vh] bg-black/95 backdrop-blur-xl pointer-events-auto flex flex-col relative border-t-4"
+                className="w-full h-[75vh] md:h-[60vh] bg-black/95 backdrop-blur-xl pointer-events-auto flex flex-col relative border-t-4"
                 style={{
                     borderTopColor: themeColors.primary,
                     boxShadow: `0 -20px 50px ${themeColors.primary}33` // 20% 투명도 쉐도우
@@ -171,15 +171,15 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
             >
 
                 {/* --- Ticker-style Peeking Handle (Restored) --- */}
-                <div className="absolute -top-12 left-0 right-0 h-12 z-50 flex justify-center pointer-events-none">
+                <div className="absolute -top-10 md:-top-12 left-0 right-0 h-10 md:h-12 z-50 flex justify-center pointer-events-none">
                     <div
-                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-6 pointer-events-auto transition-colors group shadow-lg"
+                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-4 md:px-6 pointer-events-auto transition-colors group shadow-lg"
                         style={{ backgroundColor: themeColors.primary }}
                         onPointerDown={(e) => controls.start(e)}
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         <span
-                            className="font-oswald font-black uppercase tracking-widest text-lg"
+                            className="font-oswald font-black uppercase tracking-widest text-sm md:text-lg"
                             style={{ color: themeColors.primaryText }}
                         >
                             {isOpen ? "CLOSE FEED" : "CUSTOMIZE TEAM"}
@@ -230,7 +230,8 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                                 ? 'bg-white text-black'
                                                 : 'text-zinc-500 hover:text-white'}`}
                                         >
-                                            {sport.icon} {sport.name}
+                                            <span className="text-lg md:text-sm">{sport.icon}</span> 
+                                            <span className="hidden md:inline">{sport.name}</span>
                                         </button>
                                     ))}
                                 </div>

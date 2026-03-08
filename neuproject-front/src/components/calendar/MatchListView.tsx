@@ -65,7 +65,7 @@ export default function MatchListView({
                                     {event.type === 'race' ? (
                                         <div className="flex-1 flex items-center justify-between gap-4">
                                             <div className="flex flex-col">
-                                                <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-white group-hover:text-zinc-200 transition-colors">
+                                                <span className="text-lg md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-white group-hover:text-zinc-200 transition-colors line-clamp-2 md:line-clamp-none">
                                                     {event.homeTeamName}
                                                 </span>
                                                 <div className="flex items-center gap-2 mt-1">
@@ -86,7 +86,7 @@ export default function MatchListView({
                                     ) : (
                                         <div className="flex-1 grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                                             <div className="flex items-center gap-3 justify-end text-right overflow-hidden min-w-0">
-                                                <div className="flex flex-col items-end min-w-0 flex-1">
+                                                <div className="hidden md:flex flex-col items-end min-w-0 flex-1">
                                                     <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-200">
                                                         {event.homeTeamName}
                                                     </span>
@@ -120,7 +120,7 @@ export default function MatchListView({
                                                         return <span className="text-4xl">{awayTeam?.logo || '🛡️'}</span>;
                                                     })()}
                                                 </div>
-                                                <div className="flex flex-col items-start min-w-0 flex-1">
+                                                <div className="hidden md:flex flex-col items-start min-w-0 flex-1">
                                                     <span className="text-2xl md:text-3xl font-bold uppercase italic font-oswald leading-none tracking-tight text-zinc-400">
                                                         {event.awayTeamName}
                                                     </span>

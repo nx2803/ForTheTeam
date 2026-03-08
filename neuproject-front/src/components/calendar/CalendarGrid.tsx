@@ -168,7 +168,7 @@ export default function CalendarGrid({
                 ))}
             </div>
 
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-fr overflow-hidden border-t border-l border-zinc-800">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-fr overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar pb-20 md:pb-0">
                 {/* Empty Slots */}
                 {Array.from({ length: startDay }).map((_, i) => (
                     <div key={`empty-${i}`} className="hidden md:block bg-zinc-900/20 border-r border-b border-zinc-800"></div>
@@ -186,8 +186,8 @@ export default function CalendarGrid({
                             key={day}
                             className={`
                             relative group transition-colors flex flex-col
-                            md:p-2 h-full min-h-[140px] md:min-h-0
-                            ${events.length > 0 ? 'bg-white/2' : ''}
+                            p-2 h-full md:min-h-0
+                            ${events.length > 0 ? 'bg-white/5' : ''}
                             ${isToday
                                     ? 'border-2 z-10 shadow-lg'
                                     : 'border-b border-zinc-800 md:border-r hover:bg-white/5'}
@@ -198,12 +198,12 @@ export default function CalendarGrid({
                             }}
                         >
                             <div className="flex justify-between items-start px-1 pt-1 mb-1 shrink-0">
-                                <span className={`font-oswald text-3xl md:text-2xl font-black italic leading-none ${events.length > 0 || isToday ? 'text-white' : 'text-zinc-600'}`}>
+                                <span className={`font-oswald text-2xl font-black italic leading-none ${events.length > 0 || isToday ? 'text-white' : 'text-zinc-600'}`}>
                                     {day}
                                 </span>
                                 {isToday && (
                                     <div
-                                        className="px-2 py-0.5 text-[10px] font-black tracking-widest uppercase bg-white text-black shadow-lg -skew-x-12"
+                                        className="px-2 py-0.5 text-[10px] md:text-xs font-black tracking-widest uppercase bg-white text-black shadow-lg -skew-x-12"
                                         style={{ backgroundColor: themeColors.primary, color: themeColors.primaryText }}
                                     >
                                         TODAY

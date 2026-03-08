@@ -133,16 +133,18 @@ export default function Home() {
       </div>
 
       {/* 2. Floating Header */}
+      {/* Ticker 가 h-10(40px)을 차지하므로, 모바일 Header는 top-14(56px) 정도에 위치시키는 것이 적절함 */}
       <Header myTeams={myTeams} />
 
       {/* 3. Main Content Area */}
-      <div className="flex-1 w-full mx-auto p-4 md:p-6 pt-20 md:pt-24 pb-2 relative z-10 flex gap-6 max-h-[calc(100vh-1rem)]">
+      {/* Main Content는 Header와 Ticker 아래에 위치해야 하므로 pt를 더 줌 */}
+      <div className="flex-1 w-full min-h-0 mx-auto p-4 md:p-6 pt-24 md:pt-40 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
             <div className="text-white font-oswald text-2xl animate-pulse">LOADING SPORTS DATA...</div>
           </div>
         }>
-          <div className="flex-1 h-full shadow-2xl overflow-hidden flex flex-col">
+          <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">
             <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />
           </div>
         </Suspense>

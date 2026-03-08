@@ -15,7 +15,11 @@ async function bootstrap() {
 
   // CORS 설정 - 프론트엔드와 통신을 위해 필요
   app.enableCors({
-    origin: 'http://localhost:3000', // Next.js 개발 서버
+    origin: [
+      'http://localhost:3000',           // 로컬 개발 환경
+      'https://for-the-team.vercel.app'  // Vercel 배포 환경
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
@@ -33,7 +37,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(process.env.PORT ?? 3001);
-  console.log(`Application is running on: http://localhost:3001`);
-  console.log(`Swagger docs: http://localhost:3001/api-docs`);
+  console.log(`Application is running on: https://reasonable-elwira-270ml-6ed655f9.koyeb.app`);
+  console.log(`Swagger docs: https://reasonable-elwira-270ml-6ed655f9.koyeb.app/api-docs`);
 }
 bootstrap();

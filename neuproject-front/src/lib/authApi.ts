@@ -5,7 +5,6 @@ export interface LoginResponse {
     uid: string;
     email: string;
     nickname: string;
-    main_favorite_team_id: string | null;
     joined_at: Date;
 }
 
@@ -13,7 +12,6 @@ export interface SignupRequest {
     email: string;
     pass: string;
     nickname: string;
-    teamId: string;
 }
 
 export interface LoginRequest {

@@ -32,10 +32,8 @@ model members {
   email                 String    @unique @db.VarChar(255)
   hashed_password       String    @db.VarChar(255)
   nickname              String    @db.VarChar(100)
-  main_favorite_team_id String?   @db.Uuid
   joined_at             DateTime? @default(now()) @db.Timestamp(6)
   follows               follows[]
-  teams                 teams?    @relation(fields: [main_favorite_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model teams {
@@ -50,7 +48,6 @@ model teams {
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
   updated_at      DateTime? @default(now()) @db.Timestamptz(6)
   follows         follows[]
-  members         members[]
   leagues         leagues   @relation(fields: [league_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   home_matches    matches[] @relation("home_matches")
   away_matches    matches[] @relation("away_matches")

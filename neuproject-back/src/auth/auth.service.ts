@@ -8,7 +8,7 @@ console.log(process.env.DATABASE_URL);
 export class AuthService {
   constructor(private prisma: PrismaService) { }
 
-  async register(email: string, pass: string, nickname: string, teamId: string) {
+  async register(email: string, pass: string, nickname: string) {
     const hashedPassword = await bcrypt.hash(pass, 10);
 
     return this.prisma.members.create({
@@ -16,7 +16,6 @@ export class AuthService {
         email,
         hashed_password: hashedPassword,
         nickname,
-        main_favorite_team_id: teamId,
       },
     });
   }

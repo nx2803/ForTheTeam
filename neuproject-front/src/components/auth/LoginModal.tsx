@@ -17,7 +17,6 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         email: '',
         password: '',
         nickname: '',
-        teamId: '',
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +39,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 onClose();
             } else {
                 // 회원가입
-                if (!formData.nickname || !formData.teamId) {
-                    setError('모든 필드를 입력해주세요');
+                if (!formData.nickname) {
+                    setError('닉네임을 입력해주세요');
                     setIsLoading(false);
                     return;
                 }
@@ -50,7 +49,6 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                     email: formData.email,
                     pass: formData.password,
                     nickname: formData.nickname,
-                    teamId: formData.teamId,
                 });
 
                 // 회원가입 성공 - 자동 로그인
@@ -68,7 +66,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     const toggleMode = () => {
         setMode(mode === 'login' ? 'signup' : 'login');
         setError('');
-        setFormData({ email: '', password: '', nickname: '', teamId: '' });
+        setFormData({ email: '', password: '', nickname: '' });
     };
     return (
         <AnimatePresence>
@@ -155,17 +153,6 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                                 onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                                                 className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm rounded-sm placeholder:text-zinc-700"
                                                 placeholder="Your Nickname"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1 font-mono">Favorite Team ID</label>
-                                            <input
-                                                type="text"
-                                                value={formData.teamId}
-                                                onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
-                                                className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm rounded-sm placeholder:text-zinc-700"
-                                                placeholder="Team UUID"
                                                 required
                                             />
                                         </div>

@@ -32,7 +32,7 @@ export default function Ticker({ myTeams }: TickerProps) {
 
             try {
                 setIsLoading(true);
-                let url = 'http://localhost:3001/matches/recent?days=7';
+                let url = 'http://reasonable-elwira-270ml-6ed655f9.koyeb.app:3001/matches/recent?days=7';
 
                 if (isLoggedIn && user?.uid) {
                     url += `&memberUid=${user.uid}`;

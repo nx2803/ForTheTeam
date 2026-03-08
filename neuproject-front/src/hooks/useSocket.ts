@@ -11,7 +11,7 @@ export function useSocket() {
 
     useEffect(() => {
         // 백엔드 URL 설정 (환경 변수 또는 기본값)
-        const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://reasonable-elwira-270ml-6ed655f9.koyeb.app:3001';
 
         if (!socket) {
             socket = io(socketUrl, {

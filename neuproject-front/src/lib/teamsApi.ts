@@ -1,5 +1,5 @@
 // src/lib/teamsApi.ts
-const API_BASE_URL = 'http://reasonable-elwira-270ml-6ed655f9.koyeb.app:3001/teams';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/teams`;
 
 export interface TeamResponse {
     id: string;

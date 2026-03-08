@@ -10,8 +10,8 @@ export function useSocket() {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        // 백엔드 URL 설정 (환경 변수 또는 기본값)
-        const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://reasonable-elwira-270ml-6ed655f9.koyeb.app:3001';
+        // 백엔드 URL 설정 (환경 변수 사용)
+        const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
         if (!socket) {
             socket = io(socketUrl, {

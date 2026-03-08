@@ -117,18 +117,9 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
     // 스포츠 아이콘 매핑
     function getSportIcon(sportName: string): string {
         const iconMap: Record<string, string> = {
-            'soccer': '⚽',
-            'baseball': '⚾',
-            'basketball': '🏀',
-            'motorsport': '🏎️',
-            'esports': '🎮',
-            'football': '🏈',
-            'hockey': '🏒',
-            // 한글 매핑 추가
-            '축구': '⚽',
             '야구': '⚾',
             '농구': '🏀',
-            '모터스포츠': '🏎️',
+            '모토스포츠': '🏁',
             'e스포츠': '🎮',
             '미식축구': '🏈',
             '아이스하키': '🏒',
@@ -230,7 +221,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                                 ? 'bg-white text-black'
                                                 : 'text-zinc-500 hover:text-white'}`}
                                         >
-                                            <span className="text-lg md:text-sm">{sport.icon}</span> 
+                                            <span className="text-lg md:text-sm">{sport.icon}</span>
                                             <span className="hidden md:inline">{sport.name}</span>
                                         </button>
                                     ))}

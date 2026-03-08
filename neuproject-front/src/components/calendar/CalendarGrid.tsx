@@ -157,6 +157,19 @@ export default function CalendarGrid({
     startDay,
     daysInMonth
 }: CalendarGridProps) {
+    React.useEffect(() => {
+        const todayCell = document.getElementById('today-cell');
+        const scrollContainer = document.getElementById('calendar-grid-container');
+        if (todayCell && scrollContainer) {
+            if (window.innerWidth < 768) {
+                const containerHeight = scrollContainer.clientHeight;
+                const cellHeight = todayCell.clientHeight;
+                const scrollPos = todayCell.offsetTop - (containerHeight / 2) + (cellHeight / 2);
+                scrollContainer.scrollTo({ top: scrollPos, behavior: 'smooth' });
+            }
+        }
+    }, [currentDate]);
+
     return (
         <>
             {/* Days Header */}
@@ -168,7 +181,7 @@ export default function CalendarGrid({
                 ))}
             </div>
 
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-fr overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar pb-20 md:pb-0">
+            <div id="calendar-grid-container" className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-fr overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar pb-20 md:pb-0">
                 {/* Empty Slots */}
                 {Array.from({ length: startDay }).map((_, i) => (
                     <div key={`empty-${i}`} className="hidden md:block bg-zinc-900/20 border-r border-b border-zinc-800"></div>
@@ -184,6 +197,7 @@ export default function CalendarGrid({
                     return (
                         <div
                             key={day}
+                            id={isToday ? 'today-cell' : undefined}
                             className={`
                             relative group transition-colors flex flex-col
                             p-2 h-full md:min-h-0
@@ -203,7 +217,7 @@ export default function CalendarGrid({
                                 </span>
                                 {isToday && (
                                     <div
-                                        className="px-2 py-0.5 text-[10px] md:text-xs font-black tracking-widest uppercase bg-white text-black shadow-lg -skew-x-12"
+                                        className="px-2 py-0.5 text-[10px] md:text-xs font-black tracking-widest uppercase bg-white text-black shadow-lg"
                                         style={{ backgroundColor: themeColors.primary, color: themeColors.primaryText }}
                                     >
                                         TODAY

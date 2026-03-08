@@ -117,6 +117,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
     // 스포츠 아이콘 매핑
     function getSportIcon(sportName: string): string {
         const iconMap: Record<string, string> = {
+            '축구': '⚽',
             '야구': '⚾',
             '농구': '🏀',
             '모토스포츠': '🏁',

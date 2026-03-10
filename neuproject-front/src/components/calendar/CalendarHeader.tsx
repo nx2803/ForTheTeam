@@ -132,7 +132,7 @@ export default function CalendarHeader({
                                 axis="x"
                                 values={myTeams}
                                 onReorder={setMyTeams}
-                                className="flex gap-1 overflow-x-auto no-scrollbar items-center h-full"
+                                className={`flex gap-1 items-center h-full ${isReorderMode ? 'overflow-visible' : 'overflow-x-auto no-scrollbar'}`}
                             >
                                 {myTeams.map(team => (
                                     <Reorder.Item
@@ -140,11 +140,11 @@ export default function CalendarHeader({
                                         value={team}
                                         dragListener={isReorderMode}
                                         className={`
-                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
-                                            ${isReorderMode ? 'cursor-grab active:cursor-grabbing ring-2 ring-white/20' : 'cursor-pointer'}
-                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg opacity-100 ring-2' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
+                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden
+                                            ${isReorderMode ? 'cursor-grab active:cursor-grabbing ring-1 ring-white/10' : 'cursor-pointer transition-all duration-300'}
+                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg opacity-100' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
                                         `}
-                                        style={{ border: 'none', y: 0, boxShadow: selectedTeamId === team.id ? `0 0 0 2px ${themeColors.primary}` : undefined }}
+                                        style={{ border: 'none', x: 0, boxShadow: selectedTeamId === team.id ? `0 0 0 2px ${themeColors.primary}` : 'none' }}
                                         onPointerDown={() => {
                                             const isDeselecting = selectedTeamId === team.id;
                                             setMainTeam(isDeselecting ? null : team);

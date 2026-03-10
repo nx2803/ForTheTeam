@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { Team } from '@/types/team';
 
@@ -29,6 +29,7 @@ export default function CalendarHeader({
     setMainTeam,
     themeColors
 }: CalendarHeaderProps) {
+    const [isReorderMode, setIsReorderMode] = useState(false);
     const selectedTeamId = mainTeam?.id || null;
 
     return (
@@ -96,9 +97,9 @@ export default function CalendarHeader({
                 </div>
 
                 {/* RIGHT: Team Filter */}
-                <div className="flex items-center gap-2 md:gap-4 shrink-0 max-w-[65%] md:max-w-none">
+                <div className="flex items-center gap-2 md:gap-4 shrink-0 max-w-[65%] md:max-w-[450px] lg:max-w-[600px]">
                     <div
-                        className="w-full relative bg-[#18181b] px-4 flex items-center justify-end gap-2 border-t border-x shadow-xl h-12 md:h-16 shrink-0"
+                        className="w-full relative bg-[#18181b] px-3 md:px-4 flex items-center justify-end gap-2 border-t border-x shadow-xl h-12 md:h-16 shrink-0"
                         style={{
                             borderBottom: '1px solid #18181b',
                             minWidth: 'auto',
@@ -108,13 +109,24 @@ export default function CalendarHeader({
                             borderBottomColor: themeColors.secondary
                         }}
                     >
-                        <button
-                            onClick={() => setMainTeam(null)}
-                            className={`text-[10px] font-mono font-bold uppercase mr-auto tracking-widest hidden sm:block transition-all duration-200 hover:text-white ${!selectedTeamId ? 'text-white' : 'text-zinc-500 hover:underline hover:underline-offset-4'}`}
-                            title="Show all teams"
-                        >
-                            ALL TEAMS
-                        </button>
+                        <div className="flex flex-col mr-auto">
+                            <button
+                                onClick={() => setMainTeam(null)}
+                                className={`text-[10px] font-mono font-bold uppercase tracking-widest hidden sm:block transition-all duration-200 hover:text-white ${!selectedTeamId ? 'text-white' : 'text-zinc-500 hover:underline hover:underline-offset-4'}`}
+                                title="Show all teams"
+                            >
+                                ALL TEAMS
+                            </button>
+                            {setMyTeams && (
+                                <button
+                                    onClick={() => setIsReorderMode(!isReorderMode)}
+                                    className={`text-[9px] font-mono font-bold uppercase tracking-tighter transition-all duration-200 flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
+                                >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
+                                    {isReorderMode ? 'EDITING...' : 'REORDER'}
+                                </button>
+                            )}
+                        </div>
                         {setMyTeams ? (
                             <Reorder.Group
                                 axis="x"
@@ -126,11 +138,13 @@ export default function CalendarHeader({
                                     <Reorder.Item
                                         key={team.id}
                                         value={team}
+                                        dragListener={isReorderMode}
                                         className={`
-                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden cursor-grab active:cursor-grabbing
-                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg opacity-100' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
+                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
+                                            ${isReorderMode ? 'cursor-grab active:cursor-grabbing ring-2 ring-white/20' : 'cursor-pointer'}
+                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg opacity-100 ring-2' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
                                         `}
-                                        style={{ border: 'none', y: 0 }}
+                                        style={{ border: 'none', y: 0, boxShadow: selectedTeamId === team.id ? `0 0 0 2px ${themeColors.primary}` : undefined }}
                                         onPointerDown={() => {
                                             const isDeselecting = selectedTeamId === team.id;
                                             setMainTeam(isDeselecting ? null : team);

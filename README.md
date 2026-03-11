@@ -1,7 +1,7 @@
 <div align="center">
-  <h1>🏆 FOR THE TEAM (NeuProject)</h1>
+  <h1>🏆 FOR THE TEAM</h1>
   <p><strong>Enterprise-Grade Unified Sports Calendar & Dynamic Theming Platform</strong></p>
-  <p>유럽 축구부터 야구, 농구, F1, e스포츠까지 내가 응원하는 팀의 일정을 한 곳에서 관리하세요.</p>
+  <p>유럽 축구부터 야구, 농구, F1, e스포츠까지 내가 응원하는 팀의 일정을 한 곳에서.</p>
 </div>
 
 <br />

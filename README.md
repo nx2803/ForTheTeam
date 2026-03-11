@@ -118,6 +118,78 @@
 
 ---
 
+## 📊 데이터베이스 아키텍처 (Database Architecture)
+
+본 프로젝트는 **PostgreSQL (Supabase)**을 주 저장소로 사용하며, 정교한 관계형 모델링을 통해 스포츠 데이터의 무결성을 보장합니다.
+
+### 🧩 ER 다이어그램 (Entity Relationship Diagram)
+
+```mermaid
+erDiagram
+    MEMBERS ||--o{ FOLLOWS : "follows"
+    TEAMS ||--o{ FOLLOWS : "is followed by"
+    LEAGUES ||--o{ TEAMS : "contains"
+    LEAGUES ||--o{ MATCHES : "belongs to"
+    TEAMS ||--o{ MATCHES : "plays as home"
+    TEAMS ||--o{ MATCHES : "plays as away"
+
+    MEMBERS {
+        uuid uid PK
+        string email UK
+        string hashed_password
+        string nickname
+        timestamp joined_at
+    }
+
+    LEAGUES {
+        uuid id PK
+        string name
+        string category
+        string logo_url
+        timestamp created_at
+    }
+
+    TEAMS {
+        uuid id PK
+        uuid league_id FK
+        string name
+        string logo_url
+        string primary_color
+        string secondary_color
+        string abbreviation
+        string external_api_id
+    }
+
+    MATCHES {
+        uuid id PK
+        uuid league_id FK
+        uuid home_team_id FK
+        uuid away_team_id FK
+        string home_team_name
+        string away_team_name
+        timestamp match_at
+        string status
+        int home_score
+        int away_score
+        string external_api_id
+        string venue
+    }
+
+    FOLLOWS {
+        int id PK
+        uuid member_uid FK
+        uuid team_id FK
+        timestamp created_at
+    }
+```
+
+### 🔑 주요 테이블 설계 의도
+*   **matches**: 단순 경기 결과뿐만 아니라 `home_team_name` 등의 백업 필드를 두어 외부 API 장애 시에도 UI 가시성을 확보하는 **Fail-Safe** 설계가 적용되었습니다.
+*   **teams & leagues**: `external_api_id`를 통해 여러 외부 소스(ESPN, KBO 등)의 데이터를 하나의 내부 ID 로 정규화(`Normalization`)하여 관리합니다.
+*   **follows**: 사용자와 팀 간의 N:M 관계를 효율적으로 처리하여 개인화된 피드 제공에 최적화되어 있습니다.
+
+---
+
 
 ## 🔍 Technical Deep Dive (Advanced Perspective)
 

@@ -17,7 +17,7 @@ export class FootballController {
         name: 'league',
         enum: ['PL', 'BL1', 'PD', 'SA'],
         description:
-            '리그 코드 - PL: Premier League, BL1: Bundesliga, PD: La Liga, SA: Serie A',
+            '리그 코드 - PL: 프리미어리그(EPL), BL1: 분데스리가, PD: 라리가, SA: 세리에A',
     })
     async getLeagueMatches(
         @Param('league') league: 'PL' | 'BL1' | 'PD' | 'SA',

@@ -96,24 +96,33 @@ export class EspnService {
             const processedDates = new Set<string>();
 
             // 2. 캘린더를 순회하며 데이터 수집
-            // NFL은 'weeks', 나머지는 'entries' (주나 월 단위) 구조임
             for (const yearEntry of calendar) {
-                // 특정 시즌 연도 필터링 (있는 경우)
-                if (season && parseInt(yearEntry.label) !== season) continue;
+                // 특정 시즌 연도 필터링 (가져오려는 시즌과 일치하거나, 현재 연도 주변인 경우만)
+                const currentYear = new Date().getFullYear();
+                const entryYear = parseInt(yearEntry.label);
+                
+                if (season) {
+                    if (entryYear !== season && entryYear !== season - 1 && entryYear !== season + 1) continue;
+                } else {
+                    // 기본적으로는 최근 2년 정도의 데이터만 타겟팅 (너무 오래된 데이터 방지)
+                    if (entryYear < currentYear - 1 || entryYear > currentYear + 1) continue;
+                }
 
                 const entries = yearEntry.entries || yearEntry.weeks || [];
+                this.logger.log(`Processing ${config.name} calendar for ${yearEntry.label} (${entries.length} entries)`);
+
                 for (const entry of entries) {
                     try {
-                        const params: Record<string, any> = { limit: 100 };
+                        const params: Record<string, any> = { limit: 1000 };
 
-                        // NFL 특화: seasontype과 week 사용
+                        // 공통: seasontype이 있다면 활용 (NFL은 필수, 나머지는 옵션)
+                        if (yearEntry.value) {
+                            params.seasontype = yearEntry.value;
+                        }
+
                         if (sportCode === 'NFL') {
-                            params.seasontype = yearEntry.value; // 1: Pre, 2: Reg, 3: Post
                             params.week = entry.value;
                         } else {
-                            // NBA/MLB/NHL: dates (YYYYMMDD) 사용
-                            // entry.value가 "20241022-20250413" 형태일 수 있으므로 
-                            // 범위 내의 개별 날짜나 시작일/범위를 적절히 처리
                             params.dates = entry.value;
                         }
 
@@ -125,22 +134,26 @@ export class EspnService {
                         );
 
                         const events = response.data.events || [];
+                        let addedCount = 0;
                         for (const event of events) {
                             if (!processedDates.has(event.id)) {
                                 allEvents.push(event);
                                 processedDates.add(event.id);
+                                addedCount++;
                             }
                         }
 
-                        this.logger.debug(
-                            `Fetched ${events.length} events for ${config.name} ${entry.label || entry.value}`,
-                        );
+                        if (addedCount > 0) {
+                            this.logger.debug(
+                                `Fetched ${events.length} events (${addedCount} new) for ${config.name} ${yearEntry.label}-${entry.label || entry.value}`,
+                            );
+                        }
                         
-                        // API 가이드라인 준수를 위한 미세 지연 (옵션)
-                        await new Promise(resolve => setTimeout(resolve, 50));
+                        // API 부하 방지
+                        await new Promise(resolve => setTimeout(resolve, 30));
 
                     } catch (error: any) {
-                        this.logger.warn(`Failed to fetch entry ${entry.value}: ${error.message}`);
+                        this.logger.warn(`Failed to fetch ${config.name} entry ${entry.value}: ${error.message}`);
                     }
                 }
             }

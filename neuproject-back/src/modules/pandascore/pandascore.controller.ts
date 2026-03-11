@@ -9,9 +9,9 @@ export class PandaScoreController {
 
     @Get('lck-matches')
     @ApiOperation({
-        summary: 'LCK 경기 일정 조회',
+        summary: 'LCK(E-스포츠) 경기 일정 조회',
         description:
-            'PandaScore API를 통해 LCK(League of Legends Champions Korea) 경기 일정을 가져옵니다. league_id=293 기준.',
+            'PandaScore API를 활용하여 LCK(League of Legends Champions Korea)의 최신 경기 일정을 가져옵니다.',
     })
     async getLckMatches() {
         return await this.pandaScoreService.getLckMatches();

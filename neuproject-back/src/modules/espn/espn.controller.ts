@@ -9,22 +9,22 @@ export class EspnController {
 
     @Get('scoreboard/:sport')
     @ApiOperation({
-        summary: '특정 스포츠 경기 일정 조회',
+        summary: '종목별 경기 일정 조회 (Scoreboard)',
         description:
-            'ESPN API를 통해 NFL 또는 NHL의 경기 일정을 가져옵니다. date 파라미터를 지정하면 해당 날짜의 경기만 조회합니다.',
+            'ESPN 공식 스코어보드 API를 통해 특정 종목의 현재 혹은 특정 날짜 경기 일정을 가져옵니다. (NFL, NHL, NBA, MLB 지원)',
     })
     @ApiParam({
         name: 'sport',
-        enum: ['NFL', 'NHL'],
-        description: '스포츠 코드 - NFL: 미식축구, NHL: 아이스하키',
+        enum: ['NFL', 'NHL', 'NBA', 'MLB'],
+        description: '스포츠 종목 코드',
     })
     @ApiQuery({
         name: 'date',
         required: false,
-        description: '조회 날짜 (YYYYMMDD 형식, 예: 20260301)',
+        description: '조회 날짜 (YYYYMMDD 형식). 미지정 시 최신/오늘 데이터 반환.',
     })
     async getScoreboard(
-        @Param('sport') sport: 'NFL' | 'NHL',
+        @Param('sport') sport: 'NFL' | 'NHL' | 'NBA' | 'MLB',
         @Query('date') date?: string,
     ) {
         return await this.espnService.getScoreboard(sport, date);
@@ -32,19 +32,19 @@ export class EspnController {
 
     @Get('season/:sport')
     @ApiOperation({
-        summary: '시즌 전체 일정 조회',
+        summary: '시즌 전체 일정 조회 (캘린더 기반)',
         description:
-            'NFL 또는 NHL의 시즌 전체 경기 일정을 가져옵니다. season 파라미터로 특정 시즌 조회 가능합니다.',
+            'ESPN 캘린더 메타데이터를 활용하여 해당 종목의 한 시즌 전체 경기 일정을 단계적으로 수집합니다. (NFL, NHL, NBA, MLB 지원)',
     })
     @ApiParam({
         name: 'sport',
-        enum: ['NFL', 'NHL'],
-        description: '스포츠 코드 - NFL: 미식축구, NHL: 아이스하키',
+        enum: ['NFL', 'NHL', 'NBA', 'MLB'],
+        description: '스포츠 종목 코드',
     })
     @ApiQuery({
         name: 'season',
         required: false,
-        description: '시즌 연도 (예: 2025)',
+        description: '시즌 연도 (예: 2025). 미지정 시 현재 진행 중인 시즌 기준.',
         type: Number,
     })
     async getSeasonSchedule(
@@ -56,9 +56,9 @@ export class EspnController {
 
     @Get('scoreboard')
     @ApiOperation({
-        summary: 'NFL + NHL 전체 경기 일정 조회',
+        summary: '미국 4대 프로 스포츠 전체 경기 일정 조회',
         description:
-            'NFL과 NHL의 오늘 경기 일정을 한번에 가져옵니다. 응답은 스포츠 코드별(NFL, NHL)로 분류됩니다.',
+            'NFL, NHL, NBA, MLB의 최신 경기 일정을 한 번에 병렬로 조회하여 종목별로 결과를 반환합니다.',
     })
     async getAllScoreboard() {
         return await this.espnService.getAllSportsSchedule();

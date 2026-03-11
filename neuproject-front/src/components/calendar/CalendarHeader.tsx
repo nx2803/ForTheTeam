@@ -9,9 +9,12 @@ import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 
-interface CalendarHeaderProps {}
+interface CalendarHeaderProps {
+    isPending?: boolean;
+    startTransition?: (callback: () => void) => void;
+}
 
-export default function CalendarHeader({}: CalendarHeaderProps) {
+export default function CalendarHeader({ isPending, startTransition }: CalendarHeaderProps) {
     const { themeColors, setMainTeam, mainTeam } = useTheme();
     const { user } = useAuth();
     const { currentDate: currentDateStr, viewMode, setViewMode, nextMonth, prevMonth } = useCalendarStore();
@@ -23,15 +26,23 @@ export default function CalendarHeader({}: CalendarHeaderProps) {
     return (
         <div className="md:hidden flex flex-col gap-3 mb-4">
             {/* 1. Month Navigation - No Box (Like Desktop) */}
-            <div className="flex items-center justify-center gap-6 py-2">
-                <button onClick={prevMonth} className="text-zinc-400 hover:text-white p-2">
+            <div className={`flex items-center justify-center gap-6 py-2 transition-opacity ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+                <button 
+                    onClick={() => startTransition ? startTransition(() => prevMonth()) : prevMonth()} 
+                    disabled={isPending}
+                    className="text-zinc-400 hover:text-white p-2 disabled:opacity-30"
+                >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
                 </button>
                 <h2 className="text-3xl font-black font-oswald italic uppercase text-white tracking-tighter drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] leading-none text-center">
                     {currentDate.toLocaleDateString('en-US', { month: 'long' })}
                     <span className="text-zinc-500 ml-2">{currentDate.getFullYear()}</span>
                 </h2>
-                <button onClick={nextMonth} className="text-zinc-400 hover:text-white p-2">
+                <button 
+                    onClick={() => startTransition ? startTransition(() => nextMonth()) : nextMonth()} 
+                    disabled={isPending}
+                    className="text-zinc-400 hover:text-white p-2 disabled:opacity-30"
+                >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                 </button>
             </div>

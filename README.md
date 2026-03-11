@@ -32,7 +32,10 @@
     *   Hex 코드 분석 알고리즘을 커스텀 훅(`useTheme`)에 내장하여 WCAG 기준의 가독성 자동 연산.
 *   **⚡ High-Performance UI Rendering**: 
     *   Next.js App Router (React Server Components)를 통한 TTI(Time To Interactive) 개선.
+    *   **React 19 Transition API**: 월 전환 등 무거운 상태 변경 시 UI 블로킹 없이 부드러운 전환 구현.
     *   Framer Motion의 `useDragControls`, `layoutId` 속성을 활용한 GPU 가속(GPU-accelerated) 기반의 부드러운 상태 전이 및 모달 애니메이션.
+*   **📡 Proactive Data Prefetching**:
+    *   사용자의 행동(월 이동 등)을 예측하여 차기 데이터를 배경에서 미리 로드함으로써 즉각적인 응답성 확보.
 
 ---
 
@@ -61,7 +64,10 @@
     *   `teamStore`: 팔로우 팀 선택, 순서 변경 및 테마 색상 동기화 API 연동.
     *   `calendarStore`: 캘린더의 현재 날짜, 뷰 모드(Grid/List) 상태 유지 및 Persist 미들웨어 적용.
     *   `uiStore`: 전역 로딩, 에러 핸들링 및 토스트 알림 통합 관리.
-*   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, **WebSocket 기반 실시간 리페칭** 전략 구현, 로딩 및 에러 상태의 선언적 처리.
+*   **Data Fetching (React Query)**: 
+    *   `@tanstack/react-query` v5를 사용하여 서버 데이터 캐싱 및 **WebSocket 기반 실시간 리페칭** 전략 구현.
+    *   **Intelligent Prefetching**: `prefetchQuery`를 통해 이전/다음 달 데이터를 미리 확보하여 딜레이 없는 사용자 경험 제공.
+    *   `staleTime` 최적화를 통한 불필요한 네트워크 오버헤드 절감.
 *   **Advanced UI**: Framer Motion을 활용한 GPU 가속 기반 애니메이션 및 `Suspense` 기반의 선언적 로딩 UI 처리.
 *   **Build Optimization**: `next.config.ts`의 최신 실험적 기능을 활용하여 트리쉐이킹(Tree-shaking) 및 최적화된 번들 기법 적용.
 
@@ -87,7 +93,7 @@
 *   **Sports Adapters (Module-based)**:
     *   `FootballModule`: Football-Data.org API 연동 전담.
     *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
-    *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동.
+    *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동. 
     *   `KBOModule`: 네이버 스포츠의 **내부 API 게이트웨이**를 리버스 엔지니어링하여 국내 야구 데이터를 가장 신속하고 정확하게 동기화.
 *   **Data Synchronization (SyncService)**: `Cron` 작업과 WebSocket 브로드캐스트를 결합한 실시간 데이터 파이프라인. DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키는 **Smart Emit** 로직 탑재. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
 *   **Distributed Caching (CacheManager)**: `CacheModule`과 Redis 스토어를 연동하여 고비용 쿼리 결과(경기 일정 등)를 캐싱. Redis 미구동 환경에서도 서버가 중단되지 않도록 **In-memory fallback** 로직이 적용되어 안정성 확보.
@@ -121,6 +127,7 @@
 *   **MatchesGateway**: 해당 이벤트를 구독하여 연결된 모든 클라이언트 혹은 특정 팀을 팔로우한 세션에 실시간 패킷을 전송합니다.
 *   **Client (useSocket & useMatches)**: 
     *   패킷 수신 시 전체 데이터를 다시 요청하는 대신, React Query의 `setQueriesData`를 활용하여 변경된 경기만 부분 업데이트(Optimistic/Partial Update)하거나 필요 시 캐시 키(`['matches']`)를 무효화하여 화면을 갱신합니다.
+    *   **React 19 Transition & Prefetching**: 월 이동 시 `startTransition`으로 UI 멈춤을 방지하고, `useEffect` 내에서 주변 달 데이터를 `prefetchQuery`로 미리 로드하여 'Zero-loading' 전환을 구현합니다.
     *   `useSuspenseQuery`와 `dynamic` import를 결합하여 데이터 로딩 중 선언적인 스켈레톤 UI를 제공합니다.
 
 ### 2. Next.js 16 Partial Prerendering (PPR) 적용

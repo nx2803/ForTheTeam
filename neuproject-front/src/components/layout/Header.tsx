@@ -9,9 +9,12 @@ import { useCalendarStore } from '@/store/calendarStore';
 import { useTeamStore } from '@/store/teamStore';
 import { Team } from '@/types/team';
 
-interface HeaderProps { }
+interface HeaderProps { 
+    isPending?: boolean;
+    startTransition?: (callback: () => void) => void;
+}
 
-export default function Header({ }: HeaderProps) {
+export default function Header({ isPending, startTransition }: HeaderProps) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { themeColors, setMainTeam, mainTeam } = useTheme();
@@ -90,11 +93,12 @@ export default function Header({ }: HeaderProps) {
                     </div>
                 </div>
 
-                {/* 2. Center: Original Month Navigation (Larger) - Desktop Only */}
-                <div className="hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center gap-4">
+                 {/* 2. Center: Original Month Navigation (Larger) - Desktop Only */}
+                <div className={`hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center gap-4 transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
                     <button
-                        onClick={prevMonth}
-                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+                        onClick={() => startTransition ? startTransition(() => prevMonth()) : prevMonth()}
+                        disabled={isPending}
+                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
                     </button>
@@ -105,8 +109,9 @@ export default function Header({ }: HeaderProps) {
                     </h2>
 
                     <button
-                        onClick={nextMonth}
-                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors"
+                        onClick={() => startTransition ? startTransition(() => nextMonth()) : nextMonth()}
+                        disabled={isPending}
+                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                     </button>

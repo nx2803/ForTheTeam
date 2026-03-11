@@ -1,7 +1,7 @@
 // src/app/page.tsx
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useTransition } from 'react';
 import { motion } from 'framer-motion';
 import Header from "@/components/layout/Header";
 import MainCalendar from "@/components/calendar/MainCalendar";
@@ -16,6 +16,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 export default function Home() {
   const { user } = useAuth();
   const { fetchFollowedTeams } = useTeamStore();
+  const [isPending, startTransition] = useTransition();
   useSocket(); // 실시간 소켓 연결 활성
 
   // 초기 로드: 스토어를 통해 팔로우 팀 목록 가져오기
@@ -63,8 +64,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 2. Floating Header */}
-      <Header />
+       {/* 2. Floating Header */}
+      <Header isPending={isPending} startTransition={startTransition} />
 
       {/* 3. Main Content Area */}
       <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-20 md:pt-24 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
@@ -74,7 +75,7 @@ export default function Home() {
           </div>
         }>
           <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">
-            <MainCalendar />
+            <MainCalendar isPending={isPending} startTransition={startTransition} />
           </div>
         </Suspense>
       </div>

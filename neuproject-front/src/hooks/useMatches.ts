@@ -18,6 +18,8 @@ export function useMatches(
             month,
             memberUid: isLoggedIn ? user?.uid : undefined,
         }),
+        staleTime: 1000 * 60 * 5, // 5분 캐시 유지
+        gcTime: 1000 * 60 * 10,   // 10분 후 가비지 컬렉션
         select: (rawData) => {
             // 1. 기본 데이터 포맷팅
             const formattedMatches = rawData.map((m: any) => {

@@ -11,6 +11,7 @@ import Ticker from "@/components/layout/Ticker";
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import { useTeamStore } from '@/store/teamStore';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function Home() {
   const { user } = useAuth();
@@ -69,7 +70,7 @@ export default function Home() {
       <div className="flex-1 w-full min-h-0 mx-auto p-4 md:p-6 pt-24 md:pt-40 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
-            <div className="text-white font-oswald text-2xl animate-pulse">LOADING SPORTS DATA...</div>
+            <LoadingSpinner size="xl" text="LOADING SPORTS DATA..." />
           </div>
         }>
           <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">

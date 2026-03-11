@@ -115,9 +115,11 @@ export class EspnService {
 
         for (const code of Object.keys(SPORTS) as SportCode[]) {
             try {
-                results[code] = await this.getScoreboard(code);
+                // 단순 오늘 스코어보드가 아닌, 미래 일정을 포함한 시즌 데이터를 가져옵니다.
+                this.logger.log(`Triggering full season sync for ${code}...`);
+                results[code] = await this.getSeasonSchedule(code);
             } catch (error: any) {
-                this.logger.error(`Failed to fetch ${code}: ${error.message}`);
+                this.logger.error(`Failed to fetch ${code} season schedule: ${error.message}`);
                 results[code] = { error: error.message };
             }
         }

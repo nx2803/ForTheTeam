@@ -175,29 +175,50 @@ export class SyncService {
 
         for (const [sportCode, data] of Object.entries(results)) {
             const events = (data as any).events || [];
-            const league = await this.prisma.leagues.findFirst({ where: { name: { contains: sportCode } } });
-            if (!league) continue;
+            if (events.length === 0) {
+                this.logger.warn(`[SYNC_ESPN] No upcoming events found for ${sportCode}`);
+                continue;
+            }
+
+            const league = await this.prisma.leagues.findFirst({ 
+                where: { name: { contains: sportCode, mode: 'insensitive' } } 
+            });
+            
+            if (!league) {
+                this.logger.warn(`[SYNC_ESPN] League not found in DB for: ${sportCode}`);
+                continue;
+            }
+
+            this.logger.log(`[SYNC_ESPN] Syncing ${events.length} events for ${sportCode}...`);
 
             for (const e of events) {
-                const competition = e.competitions[0];
-                const home = competition.competitors.find((c: any) => c.homeAway === 'home');
-                const away = competition.competitors.find((c: any) => c.homeAway === 'away');
+                try {
+                    const competition = e.competitions[0];
+                    if (!competition) continue;
 
-                await this.upsertMatch({
-                    external_api_id: `ESPN_${e.id}`,
-                    league_id: league.id,
-                    league_code: sportCode,
-                    home_team_name: home.team.displayName,
-                    away_team_name: away.team.displayName,
-                    home_team_external_id: `ESPN_${sportCode}_${home.team.id}`,
-                    away_team_external_id: `ESPN_${sportCode}_${away.team.id}`,
-                    match_at: new Date(e.date),
-                    status: this.mapEspnStatus(e.status.type.name),
-                    home_score: parseInt(home.score) || 0,
-                    away_score: parseInt(away.score) || 0,
-                    venue: competition.venue?.fullName,
-                });
-                totalCount++;
+                    const home = competition.competitors.find((c: any) => c.homeAway === 'home');
+                    const away = competition.competitors.find((c: any) => c.homeAway === 'away');
+
+                    if (!home || !away) continue;
+
+                    await this.upsertMatch({
+                        external_api_id: `ESPN_${e.id}`,
+                        league_id: league.id,
+                        league_code: sportCode,
+                        home_team_name: home.team.displayName,
+                        away_team_name: away.team.displayName,
+                        home_team_external_id: `ESPN_${sportCode}_${home.team.id}`,
+                        away_team_external_id: `ESPN_${sportCode}_${away.team.id}`,
+                        match_at: new Date(e.date),
+                        status: this.mapEspnStatus(e.status.type.name),
+                        home_score: parseInt(home.score) || 0,
+                        away_score: parseInt(away.score) || 0,
+                        venue: competition.venue?.fullName,
+                    });
+                    totalCount++;
+                } catch (eventError) {
+                    this.logger.error(`[SYNC_ESPN] Failed to sync event ${e.id}: ${eventError.message}`);
+                }
             }
         }
         return totalCount;

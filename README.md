@@ -49,7 +49,7 @@
 | ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white) | 5.x | 전체 타입 안전성 |
 | ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=Tailwind-CSS&logoColor=white) | v4 | Zero-runtime 스타일링 |
 | ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=Framer&logoColor=white) | latest | GPU 가속 애니메이션 |
-| ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=data:image/svg+xml;base64,&logoColor=white) | latest | 전역 상태 관리 (auth, team, calendar, ui) |
+| ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white) | latest | 전역 상태 관리 (auth, team, calendar, ui) |
 | ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=ReactQuery&logoColor=white) | v5 | 서버 상태 캐싱, Prefetching |
 | ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=Socket.io&logoColor=white) | latest | 실시간 WebSocket 연결 |
 

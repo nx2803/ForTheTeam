@@ -175,8 +175,10 @@ export class SyncService {
 
         for (const [sportCode, data] of Object.entries(results)) {
             const events = (data as any).events || [];
+            this.logger.log(`[SYNC_ESPN] Received ${events.length} total events for ${sportCode}`);
+
             if (events.length === 0) {
-                this.logger.warn(`[SYNC_ESPN] No upcoming events found for ${sportCode}`);
+                this.logger.warn(`[SYNC_ESPN] No events found to sync for ${sportCode}`);
                 continue;
             }
 
@@ -252,64 +254,74 @@ export class SyncService {
         }
 
         // --- Smart Upsert: 변경 사항이 있을 때만 DB 쓰기 발생 ---
-        const existing = await matchesModel.findUnique({
-            where: { external_api_id: data.external_api_id }
-        });
+        try {
+            const existing = await matchesModel.findUnique({
+                where: { external_api_id: data.external_api_id }
+            });
 
-        if (existing) {
-            const needsUpdate =
-                existing.status !== data.status ||
-                existing.home_score !== data.home_score ||
-                existing.away_score !== data.away_score ||
-                existing.match_at.getTime() !== data.match_at.getTime() ||
-                existing.venue !== data.venue;
+            if (existing) {
+                const needsUpdate =
+                    existing.status !== data.status ||
+                    existing.home_score !== data.home_score ||
+                    existing.away_score !== data.away_score ||
+                    existing.match_at.getTime() !== data.match_at.getTime() ||
+                    existing.venue !== data.venue;
 
-            if (!needsUpdate) return; // 변경 내용 없음 -> DB 쓰지 않음
+                if (!needsUpdate) return; // 변경 내용 없음 -> DB 쓰지 않음
 
-            const updated = await matchesModel.update({
-                where: { external_api_id: data.external_api_id },
+                const updated = await matchesModel.update({
+                    where: { external_api_id: data.external_api_id },
+                    data: {
+                        status: data.status,
+                        home_score: data.home_score,
+                        away_score: data.away_score,
+                        match_at: data.match_at,
+                        venue: data.venue,
+                        updated_at: new Date(),
+                    },
+                });
+
+                // 실시간 업데이트 방송
+                this.matchesGateway.emitMatchesUpdated({
+                    matchId: updated.id,
+                    homeScore: data.home_score,
+                    awayScore: data.away_score,
+                    status: data.status,
+                });
+
+                return updated;
+            }
+
+            if (!homeTeam || !awayTeam) {
+                this.logger.warn(`[SYNC_MATCH_FAIL] League: ${data.league_code}, Date: ${data.match_at.toISOString()}`);
+                if (!homeTeam) this.logger.warn(`  - Home Team NOT Found: "${data.home_team_name}"`);
+                if (!awayTeam) this.logger.warn(`  - Away Team NOT Found: "${data.away_team_name}"`);
+            }
+
+            return await matchesModel.create({
                 data: {
+                    external_api_id: data.external_api_id,
+                    league_id: data.league_id,
+                    home_team_id: homeTeam?.id,
+                    away_team_id: awayTeam?.id,
+                    home_team_name: data.home_team_name,
+                    away_team_name: data.away_team_name,
+                    match_at: data.match_at,
                     status: data.status,
                     home_score: data.home_score,
                     away_score: data.away_score,
-                    match_at: data.match_at,
                     venue: data.venue,
-                    updated_at: new Date(),
                 },
             });
-
-            // 실시간 업데이트 방송
-            this.matchesGateway.emitMatchesUpdated({
-                matchId: updated.id,
-                homeScore: data.home_score,
-                awayScore: data.away_score,
-                status: data.status,
-            });
-
-            return updated;
+        } catch (error) {
+            // 중복 데이터 생성 시도 시 조용히 넘어가거나 업데이트 시도
+            if (error.code === 'P2002') {
+                this.logger.debug(`[SYNC_UP_RETRY] Race condition handled for ${data.external_api_id}`);
+                // 이미 존재한다면 다시 한번 update 수행 (선택적)
+                return;
+            }
+            throw error;
         }
-
-        if (!homeTeam || !awayTeam) {
-            this.logger.warn(`[SYNC_MATCH_FAIL] League: ${data.league_code}, Date: ${data.match_at.toISOString()}`);
-            if (!homeTeam) this.logger.warn(`  - Home Team NOT Found: "${data.home_team_name}"`);
-            if (!awayTeam) this.logger.warn(`  - Away Team NOT Found: "${data.away_team_name}"`);
-        }
-
-        return matchesModel.create({
-            data: {
-                external_api_id: data.external_api_id,
-                league_id: data.league_id,
-                home_team_id: homeTeam?.id,
-                away_team_id: awayTeam?.id,
-                home_team_name: data.home_team_name,
-                away_team_name: data.away_team_name,
-                match_at: data.match_at,
-                status: data.status,
-                home_score: data.home_score,
-                away_score: data.away_score,
-                venue: data.venue,
-            },
-        });
     }
 
     private async findTeam(name: string, leagueId: string, leagueCode?: string, externalApiId?: string) {

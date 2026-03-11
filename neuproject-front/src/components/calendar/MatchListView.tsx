@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 interface MatchListViewProps {
     displayedEvents: any[];
-    getDDay: (dateStr: string) => string;
+    getDDay: (dateStr: string) => string | null;
 }
 
 export default function MatchListView({
@@ -27,6 +27,8 @@ export default function MatchListView({
                         .filter(event => event.score === null)
                         .map((event, idx) => {
                             const dDay = getDDay(event.date);
+                            // 지난 경기는 D-Day 표시 안 함 (null)
+                            if (dDay === null) return null;
                             const isImminent = dDay === 'D-DAY' || dDay === 'D-1';
 
                             if (event.type !== 'race' && (!event.homeTeamName || !event.awayTeamName)) return null;

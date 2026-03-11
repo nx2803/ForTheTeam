@@ -42,16 +42,17 @@
 ## 🛠️ 상세 기술 스택 (Technical Stack)
 
 ### 💻 프론트엔드 (Frontend)
-<p>
-  <img src="https://img.shields.io/badge/Next.js%20(16.x)-000000?style=flat-square&logo=Next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React%20(19.x)-61DAFB?style=flat-square&logo=React&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript%20(5.x)-3178C6?style=flat-square&logo=TypeScript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Tailwind%20CSS%20(v4)-06B6D4?style=flat-square&logo=Tailwind-CSS&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Framer%20Motion-0055FF?style=flat-square&logo=Framer&logoColor=white" alt="Framer Motion" />
-  <img src="https://img.shields.io/badge/Zustand-443E38?style=flat-square&logo=Zustand&logoColor=white" alt="Zustand" />
-  <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=Axios&logoColor=white" alt="Axios" />
-  <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
-</p>
+| 기술 | 버전 | 용도 |
+|---|---|---|
+| ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=Next.js&logoColor=white) | 16.x | App Router, PPR, SSR/CSR 하이브리드 |
+| ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black) | 19.x | Transition API, React Compiler |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white) | 5.x | 전체 타입 안전성 |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=Tailwind-CSS&logoColor=white) | v4 | Zero-runtime 스타일링 |
+| ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=Framer&logoColor=white) | latest | GPU 가속 애니메이션 |
+| ![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=data:image/svg+xml;base64,&logoColor=white) | latest | 전역 상태 관리 (auth, team, calendar, ui) |
+| ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=ReactQuery&logoColor=white) | v5 | 서버 상태 캐싱, Prefetching |
+| ![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=Socket.io&logoColor=white) | latest | 실시간 WebSocket 연결 |
+
 
 *   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/app`).
 *   **Next.js 16 & PPR**: 최신 `cacheComponents` 설정을 통한 **Partial Prerendering** 활성화. 정적 컨텐츠의 극단적인 속도와 동적 데이터의 유연성을 동시에 확보.
@@ -72,17 +73,16 @@
 *   **Build Optimization**: `next.config.ts`의 최신 실험적 기능을 활용하여 트리쉐이킹(Tree-shaking) 및 최적화된 번들 기법 적용.
 
 ### ⚙️ 백엔드 (Backend)
-<p>
-  <img src="https://img.shields.io/badge/NestJS-E0234E?style=flat-square&logo=NestJS&logoColor=white" alt="NestJS" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Swagger%20(OpenAPI%203.0)-85EA2D?style=flat-square&logo=Swagger&logoColor=black" alt="Swagger" />
-  <img src="https://img.shields.io/badge/Passport.js-34E27A?style=flat-square&logo=Passport&logoColor=black" alt="Passport" />
-  <img src="https://img.shields.io/badge/OpenTelemetry-000000?style=flat-square&logo=OpenTelemetry&logoColor=white" alt="OpenTelemetry" />
-  <img src="https://img.shields.io/badge/Redis-FF4438?style=flat-square&logo=Redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/RxJS-D10030?style=flat-square&logo=RxJS&logoColor=white" alt="RxJS" />
-  <img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=Axios&logoColor=white" alt="Axios" />
-  <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=Socket.io&logoColor=white" alt="Socket.io" />
-</p>
+| 기술 | 버전 | 용도 |
+|---|---|---|
+| ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=NestJS&logoColor=white) | latest | 모듈 기반 서버 프레임워크 |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white) | 5.x | 전체 타입 안전성 |
+| ![Redis](https://img.shields.io/badge/Redis-FF4438?style=for-the-badge&logo=Redis&logoColor=white) | latest | 분산 캐싱 (In-memory fallback 포함) |
+| ![RxJS](https://img.shields.io/badge/RxJS-D10030?style=for-the-badge&logo=RxJS&logoColor=white) | latest | 비동기 이벤트 스트림 처리 |
+| ![Passport](https://img.shields.io/badge/Passport.js-34E27A?style=for-the-badge&logo=Passport&logoColor=black) | latest | JWT 기반 인증 |
+| ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=for-the-badge&logo=OpenTelemetry&logoColor=white) | latest | 분산 트레이싱 & Observability |
+| ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=black) | OpenAPI 3.0 | API 문서 자동화 |
+
 
 *   **Observability (OpenTelemetry)**: `tracing.ts` 초기화를 통한 자동 인스트루멘테이션(Instrumentation) 적용. 서비스 전반의 분산 트레이싱 지원.
 *   **Real-time Engine (WebSockets)**: `@nestjs/websockets` 기반의 `MatchesGateway` 구현. 방 배치(Room) 및 네임스페이스 확장이 용이한 구조.
@@ -100,12 +100,12 @@
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
 
 ### 🗄️ 데이터베이스 및 인프라 (DB & Infra)
-<p>
-  <img src="https://img.shields.io/badge/PostgreSQL%20(15.x)-4169E1?style=flat-square&logo=PostgreSQL&logoColor=white" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/Prisma%20ORM-2D3748?style=flat-square&logo=Prisma&logoColor=white" alt="Prisma" />
-  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=Supabase&logoColor=black" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=Docker&logoColor=white" alt="Docker Compose" />
-</p>
+| 기술 | 버전 | 용도 |
+|---|---|---|
+| ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=PostgreSQL&logoColor=white) | 15.x | 메인 데이터베이스 |
+| ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=Supabase&logoColor=black) | latest | 클라우드 호스팅 PostgreSQL |
+| ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=Prisma&logoColor=white) | latest | Type-Safe ORM |
+| ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white) | latest | Multi-stage 빌드, Alpine 경량 이미지 |
 
 *   **Database**: PostgreSQL의 트랜잭션 무결성 및 CTE(Common Table Expressions) 등의 이점을 수용. Supabase의 분산 엣지 환경 대응 적용.
 *   **ORM (Prisma)**: 

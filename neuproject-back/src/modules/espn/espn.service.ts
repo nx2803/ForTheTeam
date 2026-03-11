@@ -124,15 +124,26 @@ export class EspnService {
                 // NBA/NHL/MLB 스타일: 단순 날짜 배열 구조 (day 타입)
                 // 호출 횟수를 줄이기 위해 월별(YYYYMM)로 그룹화하여 요청
                 const monthSet = new Set<string>();
+                
+                // 1. 캘린더 데이터 기반 월 추가
                 for (const dateStr of calendar) {
                     if (typeof dateStr !== 'string') continue;
-                    // dateStr 예: "2025-10-02T07:00Z"
-                    const yyyymm = dateStr.substring(0, 7).replace('-', ''); // "202510"
+                    const yyyymm = dateStr.substring(0, 7).replace('-', '');
                     monthSet.add(yyyymm);
                 }
 
+                // 2. [FIX] 캘린더가 불완전한 경우를 대비하여 현재/다음 연도의 주요 월 전수조사 추가
+                const currentYear = new Date().getFullYear();
+                const targetYears = [currentYear, currentYear + 1];
+                
+                for (const year of targetYears) {
+                    for (let m = 1; m <= 12; m++) {
+                        monthSet.add(`${year}${m.toString().padStart(2, '0')}`);
+                    }
+                }
+
                 const months = Array.from(monthSet).sort();
-                this.logger.log(`Processing ${config.name} calendar for ${months.length} months`);
+                this.logger.log(`Processing ${config.name} calendar for ${months.length} months (Calendar + Year Full-scan)`);
 
                 for (const month of months) {
                     // 특정 시즌 필터링 (입력받은 season 연도 기준)

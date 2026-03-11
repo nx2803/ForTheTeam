@@ -27,7 +27,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
         let animationFrameId: number;
 
         const animate = () => {
-            if (scrollRef.current && !isHovered && events.length >= 3) {
+            if (scrollRef.current && !isHovered && events.length > 3) {
                 const { scrollHeight, clientHeight } = scrollRef.current;
 
                 if (scrollHeight > clientHeight) {
@@ -179,7 +179,7 @@ export default function CalendarGrid({
                 ))}
             </div>
 
-            <div id="calendar-grid-container" className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-fr overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar pb-20 md:pb-0">
+            <div id="calendar-grid-container" className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-[minmax(170px,1fr)] overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar relative">
                 {/* Empty Slots */}
                 {Array.from({ length: startDay }).map((_, i) => (
                     <div key={`empty-${i}`} className="hidden md:block bg-zinc-900/20 border-r border-b border-zinc-800"></div>
@@ -188,29 +188,26 @@ export default function CalendarGrid({
                 {/* Days */}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1;
-                    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-                    const events = displayedEvents.filter((e: any) => e.date === dateStr);
+                    const events = displayedEvents.filter((ev: any) => ev.date === dateKey);
 
                     return (
                         <div
-                            key={day}
+                            key={dateKey}
                             id={isToday ? 'today-cell' : undefined}
                             className={`
-                            relative group transition-colors flex flex-col
-                            p-2 h-full md:min-h-0
-                            ${events.length > 0 ? 'bg-white/5' : ''}
-                            ${isToday
-                                    ? 'border-2 z-10 shadow-lg'
-                                    : 'border-b border-zinc-800 md:border-r hover:bg-white/5'}
-                        `}
+                                relative border-r border-b border-zinc-800 min-h-35 md:min-h-0 flex flex-col group/cell
+                                ${isToday ? 'border-2 z-10 shadow-lg' : 'hover:bg-white/5'}
+                                ${events.length > 0 ? 'bg-white/3' : 'bg-zinc-900/40'}
+                            `}
                             style={{
                                 borderColor: isToday ? themeColors.primary : undefined,
-                                backgroundColor: isToday ? `${themeColors.primary}15` : undefined
+                                backgroundColor: isToday ? `${themeColors.primary}10` : undefined
                             }}
                         >
-                            <div className="flex justify-between items-start px-1 pt-1 mb-1 shrink-0">
-                                <span className={`font-oswald text-2xl font-black italic leading-none ${events.length > 0 || isToday ? 'text-white' : 'text-zinc-600'}`}>
+                            <div className="flex justify-between items-start px-2 pt-2 mb-1 shrink-0">
+                                <span className={`font-oswald text-2xl font-black italic underline-offset-4 ${isToday ? 'text-white' : 'text-zinc-600 group-hover/cell:text-zinc-400'}`}>
                                     {day}
                                 </span>
                                 {isToday && (

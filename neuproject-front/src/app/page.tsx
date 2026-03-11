@@ -67,7 +67,7 @@ export default function Home() {
       <Header />
 
       {/* 3. Main Content Area */}
-      <div className="flex-1 w-full min-h-0 mx-auto p-4 md:p-6 pt-24 md:pt-40 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
+      <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-20 md:pt-24 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
             <LoadingSpinner size="xl" text="LOADING SPORTS DATA..." />

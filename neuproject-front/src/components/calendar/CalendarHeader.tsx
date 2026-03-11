@@ -12,50 +12,33 @@ import { useAuth } from '@/hooks/useAuth';
 interface CalendarHeaderProps {}
 
 export default function CalendarHeader({}: CalendarHeaderProps) {
-    const { currentDate: currentDateStr, viewMode, setViewMode, nextMonth, prevMonth } = useCalendarStore();
-    const currentDate = new Date(currentDateStr);
-    const { myTeams, reorderTeams } = useTeamStore();
-    const { mainTeam, setMainTeam, themeColors } = useTheme();
+    const { themeColors, setMainTeam, mainTeam } = useTheme();
     const { user } = useAuth();
+    const { currentDate: currentDateStr, viewMode, setViewMode, nextMonth, prevMonth } = useCalendarStore();
+    const { myTeams, reorderTeams } = useTeamStore();
     const [isReorderMode, setIsReorderMode] = useState(false);
+    const currentDate = new Date(currentDateStr);
     const selectedTeamId = mainTeam?.id || null;
 
     return (
-        <div className="flex flex-col w-full h-28 md:h-16 shrink-0 mb-4 z-10 relative gap-4">
-            {/* ROW 1 (Mobile) / CENTER (Desktop): Date Navigation */}
-            <div className="flex w-full h-12 md:h-auto shrink-0 justify-between items-center md:absolute md:left-1/2 md:top-0 md:transform md:-translate-x-1/2 gap-2 md:gap-4 md:w-120 pointer-events-auto z-20">
-                {viewMode === 'calendar' ? (
-                    <>
-                        <button
-                            onClick={prevMonth}
-                            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors pointer-events-auto shrink-0"
-                        >
-                            <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
-                        </button>
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-oswald italic uppercase text-white tracking-tighter shadow-black drop-shadow-lg leading-none text-center whitespace-nowrap">
-                                {currentDate.toLocaleDateString('en-US', { month: 'long' })}
-                                <span className="text-zinc-500 ml-2 md:ml-3 break-keep">{currentDate.getFullYear()}</span>
-                            </h2>
-                        </div>
-                        <button
-                            onClick={nextMonth}
-                            className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors pointer-events-auto shrink-0"
-                        >
-                            <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                        </button>
-                    </>
-                ) : (
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-oswald italic uppercase text-white tracking-tighter shadow-black drop-shadow-lg leading-none text-center w-full whitespace-nowrap">
-                        UPCOMING <span style={{ color: themeColors.primary }}>MATCHES</span>
-                    </h2>
-                )}
+        <div className="md:hidden flex flex-col gap-3 mb-4">
+            {/* 1. Month Navigation - No Box (Like Desktop) */}
+            <div className="flex items-center justify-center gap-6 py-2">
+                <button onClick={prevMonth} className="text-zinc-400 hover:text-white p-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <h2 className="text-3xl font-black font-oswald italic uppercase text-white tracking-tighter drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] leading-none text-center">
+                    {currentDate.toLocaleDateString('en-US', { month: 'long' })}
+                    <span className="text-zinc-500 ml-2">{currentDate.getFullYear()}</span>
+                </h2>
+                <button onClick={nextMonth} className="text-zinc-400 hover:text-white p-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                </button>
             </div>
 
-            {/* ROW 2 (Mobile) / FLANKING SIDES (Desktop) */}
-            <div className="flex w-full justify-between items-center z-10">
-                {/* LEFT: View Controls (Toggle) */}
-                <div className="flex bg-zinc-800 p-1 relative shrink-0 w-25 md:w-30">
+            <div className="flex gap-2 h-11">
+                {/* 2. View Toggle */}
+                <div className="flex-none w-28 bg-[#18181b]/80 backdrop-blur-md border border-zinc-700 rounded-lg p-1 flex relative">
                     <div className="absolute inset-1">
                         <motion.div
                             className="absolute top-0 bottom-0 rounded shadow-md"
@@ -68,86 +51,60 @@ export default function CalendarHeader({}: CalendarHeaderProps) {
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
                     </div>
-
                     <button
                         onClick={() => setViewMode('calendar')}
-                        className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500 hover:text-white'}`}
+                        className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500'}`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
-                        className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500 hover:text-white'}`}
+                        className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500'}`}
                         style={{ color: viewMode === 'list' ? themeColors.primaryText : undefined }}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                 </div>
 
-                {/* RIGHT: Team Filter */}
-                <div className="flex items-center gap-2 md:gap-4 shrink-0 max-w-[65%] md:max-w-[450px] lg:max-w-[600px]">
-                    <div
-                        className="w-full relative bg-[#18181b] px-3 md:px-4 flex items-center justify-end gap-2 border-t border-x shadow-xl h-12 md:h-16 shrink-0"
-                        style={{
-                            borderBottom: '1px solid #18181b',
-                            minWidth: 'auto',
-                            borderTopColor: themeColors.secondary,
-                            borderLeftColor: themeColors.secondary,
-                            borderRightColor: themeColors.secondary,
-                            borderBottomColor: themeColors.secondary
-                        }}
-                    >
-                        <div className="flex flex-col mr-auto">
-                            <button
-                                onClick={() => setMainTeam(null)}
-                                className={`text-[10px] font-mono font-bold uppercase tracking-widest hidden sm:block transition-all duration-200 hover:text-white ${!selectedTeamId ? 'text-white' : 'text-zinc-500 hover:underline hover:underline-offset-4'}`}
-                                title="Show all teams"
-                            >
-                                ALL TEAMS
-                            </button>
-                            <button
-                                onClick={() => setIsReorderMode(!isReorderMode)}
-                                className={`text-[9px] font-mono font-bold uppercase tracking-tighter transition-all duration-200 flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
-                            >
-                                <span className={`w-1.5 h-1.5 rounded-full ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
-                                {isReorderMode ? 'EDITING...' : 'REORDER'}
-                            </button>
-                        </div>
-                        <Reorder.Group
-                            axis="x"
-                            values={myTeams}
-                            onReorder={(newTeams) => reorderTeams(newTeams, user?.uid)}
-                            className={`flex gap-1 items-center h-full ${isReorderMode ? 'overflow-visible' : 'overflow-x-auto no-scrollbar'}`}
+                {/* 3. Team Filter */}
+                <div className="flex-1 min-w-0 bg-[#18181b]/80 backdrop-blur-md border border-zinc-700 rounded-lg p-1 px-2 flex items-center gap-2 overflow-hidden shadow-xl">
+                    <div className="flex flex-col shrink-0 border-r border-zinc-800 pr-2">
+                        <button
+                            onClick={() => setMainTeam(null)}
+                            className={`text-[7px] font-mono font-bold uppercase tracking-widest ${!selectedTeamId ? 'text-white' : 'text-zinc-500'}`}
                         >
-                                {myTeams.map(team => (
-                                    <Reorder.Item
-                                        key={team.id}
-                                        value={team}
-                                        dragListener={isReorderMode}
-                                        className={`
-                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden
-                                            ${isReorderMode ? 'cursor-grab active:cursor-grabbing ring-1 ring-white/10' : 'cursor-pointer transition-all duration-300'}
-                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 shadow-lg opacity-100' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
-                                        `}
-                                        style={{ border: 'none', x: 0, boxShadow: selectedTeamId === team.id ? `0 0 0 2px ${themeColors.primary}` : 'none' }}
-                                        onPointerDown={() => {
-                                            const isDeselecting = selectedTeamId === team.id;
-                                            setMainTeam(isDeselecting ? null : team);
-                                        }}
-                                    >
-                                        {team.logoUrl ? (
-                                            <img
-                                                src={team.logoUrl}
-                                                alt={team.name}
-                                                className="w-full h-full object-contain p-1 pointer-events-none"
-                                            />
-                                        ) : (
-                                            <span className="text-lg pointer-events-none">{team.logo}</span>
-                                        )}
-                                    </Reorder.Item>
-                                ))}
-                        </Reorder.Group>
+                            ALL
+                        </button>
+                        <button
+                            onClick={() => setIsReorderMode(!isReorderMode)}
+                            className={`text-[7px] font-mono font-bold uppercase tracking-tighter flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600'}`}
+                        >
+                            <span className={`w-1 h-1 rounded-full ${isReorderMode ? 'animate-pulse' : ''}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : 'currentColor' }}></span>
+                            {isReorderMode ? 'EDIT' : 'SORT'}
+                        </button>
                     </div>
+                    <Reorder.Group
+                        axis="x"
+                        values={myTeams}
+                        onReorder={(newTeams) => reorderTeams(newTeams, user?.uid)}
+                        className="flex gap-2 items-center h-full overflow-x-auto no-scrollbar"
+                    >
+                        {myTeams.map(team => (
+                            <Reorder.Item
+                                key={team.id}
+                                value={team}
+                                dragListener={isReorderMode}
+                                className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden transition-all duration-300 ${selectedTeamId === team.id ? 'scale-110 opacity-100' : (!selectedTeamId ? 'opacity-100' : 'opacity-40 brightness-50')}`}
+                                onClick={() => setMainTeam(selectedTeamId === team.id ? null : team)}
+                            >
+                                {team.logoUrl ? (
+                                    <img src={team.logoUrl} alt="" className="w-full h-full object-contain p-0.5 pointer-events-none" />
+                                ) : (
+                                    <span className="text-[10px] font-bold pointer-events-none">{team.logo}</span>
+                                )}
+                            </Reorder.Item>
+                        ))}
+                    </Reorder.Group>
                 </div>
             </div>
         </div>

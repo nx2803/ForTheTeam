@@ -5,13 +5,12 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Team } from '@/types/team';
+import { useTeamStore } from '@/store/teamStore';
 
-interface TickerProps {
-    myTeams?: Team[];
-}
+interface TickerProps {}
 
-export default function Ticker({ myTeams }: TickerProps) {
+export default function Ticker({}: TickerProps) {
+    const { myTeams } = useTeamStore();
     const { themeColors } = useTheme();
     const { user, isLoggedIn } = useAuth();
     const [recentMatches, setRecentMatches] = useState<any[]>([]);

@@ -28,10 +28,26 @@ export function useSocket() {
         socket.on('matchesUpdated', (data) => {
             console.log('Real-time match update received:', data);
 
-            // 관련 쿼리 무효화하여 데이터 다시 불러오기
-            queryClient.invalidateQueries({ queryKey: ['matches'] });
+            // 1. 캐시 내의 모든 'matches' 관련 쿼리를 순회하며 해당 경기만 업데이트
+            queryClient.setQueriesData({ queryKey: ['matches'] }, (oldData: any) => {
+                if (!Array.isArray(oldData)) return oldData;
+                
+                return oldData.map((match: any) => {
+                    if (match.id === data.matchId) {
+                        return {
+                            ...match,
+                            home_score: data.homeScore,
+                            away_score: data.awayScore,
+                            score: `${data.homeScore}:${data.awayScore}`,
+                            status: data.status,
+                        };
+                    }
+                    return match;
+                });
+            });
 
-            // 토스트 알림 등을 추가할 수도 있음
+            // 2. 혹시 모를 누락을 위해 비활성 쿼리만 무효화 (선택적)
+            // queryClient.invalidateQueries({ queryKey: ['matches'], refetchType: 'none' });
         });
 
         return () => {

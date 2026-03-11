@@ -1,103 +1,33 @@
 // src/app/page.tsx
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Header from "@/components/layout/Header";
 import MainCalendar from "@/components/calendar/MainCalendar";
 import TeamSelector from "@/components/team/TeamSelector";
 import Ticker from "@/components/layout/Ticker";
-import { Team } from '@/types/team';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
-import { getFollowedTeams, toggleTeamFollow } from '@/lib/teamsApi';
+import { useTeamStore } from '@/store/teamStore';
 
 export default function Home() {
-  const [myTeams, setMyTeams] = useState<Team[]>([]);
-  const { user, isLoggedIn } = useAuth();
+  const { user } = useAuth();
+  const { fetchFollowedTeams } = useTeamStore();
   useSocket(); // 실시간 소켓 연결 활성
 
-  // 초기 로드: DB에서 팔로우한 팀 목록 가져오기
+  // 초기 로드: 스토어를 통해 팔로우 팀 목록 가져오기
   useEffect(() => {
-    if (isLoggedIn && user?.uid) {
-      const fetchFollows = async () => {
-        try {
-          const followedTeams = await getFollowedTeams(user.uid);
-          const formattedTeams: Team[] = followedTeams.map(t => ({
-            id: t.id,
-            name: t.name,
-            logo: '',
-            logoUrl: t.logo_url || undefined,
-            mainColor: t.primary_color || '#ff4655',
-            subColor: t.secondary_color || '#000000',
-            leagueId: t.league_id,
-            sport: (t.leagues as any)?.category || 'Sports'
-          }));
-
-          // 사용자 지정 순서 복원
-          const savedOrder = localStorage.getItem(`teamOrder_${user.uid}`);
-          if (savedOrder) {
-            try {
-              const orderArr: string[] = JSON.parse(savedOrder);
-              formattedTeams.sort((a, b) => {
-                const idxA = orderArr.indexOf(a.id);
-                const idxB = orderArr.indexOf(b.id);
-                if (idxA === -1 && idxB === -1) return 0;
-                if (idxA === -1) return 1;
-                if (idxB === -1) return -1;
-                return idxA - idxB;
-              });
-            } catch (e) {
-              console.error("Failed to parse saved order", e);
-            }
-          }
-          setMyTeams(formattedTeams);
-        } catch (error) {
-          console.error('Failed to fetch followed teams:', error);
-        }
-      };
-      fetchFollows();
-    }
-  }, [isLoggedIn, user?.uid]);
-
-  const handleReorder = (newTeams: Team[]) => {
-    setMyTeams(newTeams);
     if (user?.uid) {
-      localStorage.setItem(`teamOrder_${user.uid}`, JSON.stringify(newTeams.map(t => t.id)));
+      fetchFollowedTeams(user.uid);
     }
-  };
-
-  const toggleTeam = async (team: Team) => {
-    const isCurrentlyFollowed = myTeams.find(t => t.id === team.id);
-    let newTeams: Team[];
-    if (isCurrentlyFollowed) {
-      newTeams = myTeams.filter(t => t.id !== team.id);
-    } else {
-      newTeams = [...myTeams, team];
-    }
-    setMyTeams(newTeams);
-    if (user?.uid) {
-      localStorage.setItem(`teamOrder_${user.uid}`, JSON.stringify(newTeams.map(t => t.id)));
-    }
-
-    if (isLoggedIn && user?.uid) {
-      try {
-        await toggleTeamFollow(team.id, user.uid);
-      } catch (error) {
-        console.error('Failed to toggle team follow in DB:', error);
-        if (isCurrentlyFollowed) {
-          setMyTeams(prev => [...prev, team]);
-        } else {
-          setMyTeams(prev => prev.filter(t => t.id !== team.id));
-        }
-      }
-    }
-  };
+  }, [user?.uid, fetchFollowedTeams]);
 
   return (
     <main className="flex h-screen w-full flex-col relative overflow-hidden bg-[#0a0a0a]">
       {/* 0. Top Ticker */}
-      <Ticker myTeams={myTeams} />
+      <Ticker />
 
       {/* 1. Background Typography (THE 'REAL' FTT GRID) */}
       <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.25]">
@@ -133,11 +63,9 @@ export default function Home() {
       </div>
 
       {/* 2. Floating Header */}
-      {/* Ticker 가 h-10(40px)을 차지하므로, 모바일 Header는 top-14(56px) 정도에 위치시키는 것이 적절함 */}
-      <Header myTeams={myTeams} />
+      <Header />
 
       {/* 3. Main Content Area */}
-      {/* Main Content는 Header와 Ticker 아래에 위치해야 하므로 pt를 더 줌 */}
       <div className="flex-1 w-full min-h-0 mx-auto p-4 md:p-6 pt-24 md:pt-40 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
@@ -145,13 +73,13 @@ export default function Home() {
           </div>
         }>
           <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">
-            <MainCalendar myTeams={myTeams} setMyTeams={handleReorder} />
+            <MainCalendar />
           </div>
         </Suspense>
       </div>
 
       {/* 4. Team Selector (Bottom Dock) */}
-      <TeamSelector myTeams={myTeams} toggleTeam={toggleTeam} />
+      <TeamSelector />
     </main>
   );
 }

@@ -1,23 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Team } from '@/types/team';
+import { useTeamStore } from '@/store/teamStore';
+import { useTheme } from '@/hooks/useTheme';
 
 interface CalendarGridProps {
     currentDate: Date;
     displayedEvents: any[];
-    myTeams: Team[];
-    themeColors: any;
     startDay: number;
     daysInMonth: number;
 }
 
 interface ScrollableEventListProps {
     events: any[];
-    themeColors: any;
 }
 
-const ScrollableEventList = ({ events, themeColors }: ScrollableEventListProps) => {
+const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
+    const { themeColors } = useTheme();
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = React.useState(false);
     const scrollPosRef = React.useRef(0);
@@ -152,11 +151,10 @@ const ScrollableEventList = ({ events, themeColors }: ScrollableEventListProps) 
 export default function CalendarGrid({
     currentDate,
     displayedEvents,
-    myTeams,
-    themeColors,
     startDay,
     daysInMonth
 }: CalendarGridProps) {
+    const { themeColors } = useTheme();
     React.useEffect(() => {
         const todayCell = document.getElementById('today-cell');
         const scrollContainer = document.getElementById('calendar-grid-container');
@@ -229,7 +227,7 @@ export default function CalendarGrid({
                             </div>
 
                             {/* Event List */}
-                            <ScrollableEventList events={events} themeColors={themeColors} />
+                            <ScrollableEventList events={events} />
                         </div>
                     );
                 })}

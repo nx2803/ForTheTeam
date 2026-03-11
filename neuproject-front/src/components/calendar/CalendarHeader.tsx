@@ -4,31 +4,19 @@ import React, { useState } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { Team } from '@/types/team';
 
-interface CalendarHeaderProps {
-    currentDate: Date;
-    viewMode: 'calendar' | 'list';
-    setViewMode: (mode: 'calendar' | 'list') => void;
-    nextMonth: () => void;
-    prevMonth: () => void;
-    myTeams: Team[];
-    setMyTeams?: (teams: Team[]) => void;
-    mainTeam: Team | null;
-    setMainTeam: (team: Team | null) => void;
-    themeColors: any;
-}
+import { useCalendarStore } from '@/store/calendarStore';
+import { useTeamStore } from '@/store/teamStore';
+import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function CalendarHeader({
-    currentDate,
-    viewMode,
-    setViewMode,
-    nextMonth,
-    prevMonth,
-    myTeams,
-    setMyTeams,
-    mainTeam,
-    setMainTeam,
-    themeColors
-}: CalendarHeaderProps) {
+interface CalendarHeaderProps {}
+
+export default function CalendarHeader({}: CalendarHeaderProps) {
+    const { currentDate: currentDateStr, viewMode, setViewMode, nextMonth, prevMonth } = useCalendarStore();
+    const currentDate = new Date(currentDateStr);
+    const { myTeams, reorderTeams } = useTeamStore();
+    const { mainTeam, setMainTeam, themeColors } = useTheme();
+    const { user } = useAuth();
     const [isReorderMode, setIsReorderMode] = useState(false);
     const selectedTeamId = mainTeam?.id || null;
 
@@ -117,23 +105,20 @@ export default function CalendarHeader({
                             >
                                 ALL TEAMS
                             </button>
-                            {setMyTeams && (
-                                <button
-                                    onClick={() => setIsReorderMode(!isReorderMode)}
-                                    className={`text-[9px] font-mono font-bold uppercase tracking-tighter transition-all duration-200 flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
-                                >
-                                    <span className={`w-1.5 h-1.5 rounded-full ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
-                                    {isReorderMode ? 'EDITING...' : 'REORDER'}
-                                </button>
-                            )}
-                        </div>
-                        {setMyTeams ? (
-                            <Reorder.Group
-                                axis="x"
-                                values={myTeams}
-                                onReorder={setMyTeams}
-                                className={`flex gap-1 items-center h-full ${isReorderMode ? 'overflow-visible' : 'overflow-x-auto no-scrollbar'}`}
+                            <button
+                                onClick={() => setIsReorderMode(!isReorderMode)}
+                                className={`text-[9px] font-mono font-bold uppercase tracking-tighter transition-all duration-200 flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
                             >
+                                <span className={`w-1.5 h-1.5 rounded-full ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
+                                {isReorderMode ? 'EDITING...' : 'REORDER'}
+                            </button>
+                        </div>
+                        <Reorder.Group
+                            axis="x"
+                            values={myTeams}
+                            onReorder={(newTeams) => reorderTeams(newTeams, user?.uid)}
+                            className={`flex gap-1 items-center h-full ${isReorderMode ? 'overflow-visible' : 'overflow-x-auto no-scrollbar'}`}
+                        >
                                 {myTeams.map(team => (
                                     <Reorder.Item
                                         key={team.id}
@@ -161,35 +146,7 @@ export default function CalendarHeader({
                                         )}
                                     </Reorder.Item>
                                 ))}
-                            </Reorder.Group>
-                        ) : (
-                            <div className="flex gap-1 overflow-x-auto no-scrollbar items-center h-full">
-                                {myTeams.map(team => (
-                                    <button
-                                        key={team.id}
-                                        onClick={() => {
-                                            const isDeselecting = selectedTeamId === team.id;
-                                            setMainTeam(isDeselecting ? null : team);
-                                        }}
-                                        className={`
-                                            w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all duration-300 relative overflow-hidden
-                                            ${selectedTeamId === team.id ? 'scale-110 bg-white/10 opacity-100' : (!selectedTeamId ? 'opacity-100 hover:scale-110' : 'opacity-40 hover:opacity-100 hover:scale-110')}
-                                        `}
-                                        style={{ border: 'none' }}
-                                    >
-                                        {team.logoUrl ? (
-                                            <img
-                                                src={team.logoUrl}
-                                                alt={team.name}
-                                                className="w-full h-full object-contain p-1"
-                                            />
-                                        ) : (
-                                            <span className="text-lg">{team.logo}</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        </Reorder.Group>
                     </div>
                 </div>
             </div>

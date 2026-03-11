@@ -1,22 +1,20 @@
-'use client';
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Team } from '@/types/team';
+import { useTeamStore } from '@/store/teamStore';
+import { useTheme } from '@/hooks/useTheme';
 
 interface MatchListViewProps {
     displayedEvents: any[];
-    myTeams: Team[];
-    themeColors: any;
     getDDay: (dateStr: string) => string;
 }
 
 export default function MatchListView({
     displayedEvents,
-    myTeams,
-    themeColors,
     getDDay
 }: MatchListViewProps) {
+    const { myTeams } = useTeamStore();
+    const { themeColors } = useTheme();
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-[#121212]">
             <div className="max-w-5xl mx-auto space-y-3">

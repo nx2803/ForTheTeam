@@ -7,11 +7,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { Team } from '@/types/team';
 
-interface HeaderProps {
-    myTeams?: Team[];
-}
+interface HeaderProps {}
 
-export default function Header({ myTeams = [] }: HeaderProps) {
+export default function Header({}: HeaderProps) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { user, isLoggedIn, logout, handleLoginSuccess } = useAuth();

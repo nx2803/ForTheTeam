@@ -1,20 +1,18 @@
-// src/hooks/useAuth.ts
-'use client';
-
+import { useCallback, useMemo } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { LoginResponse } from '@/lib/authApi';
 
 export function useAuth() {
     const { user, isLoggedIn, login, logout } = useAuthStore();
 
-    const handleLoginSuccess = (userData: LoginResponse) => {
+    const handleLoginSuccess = useCallback((userData: LoginResponse) => {
         login(userData);
-    };
+    }, [login]);
 
-    return {
+    return useMemo(() => ({
         user,
         isLoggedIn,
         logout,
         handleLoginSuccess,
-    };
+    }), [user, isLoggedIn, logout, handleLoginSuccess]);
 }

@@ -7,12 +7,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { getAllTeams, TeamResponse } from '@/lib/teamsApi';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-interface TeamSelectorProps {
-    myTeams: Team[];
-    toggleTeam: (team: Team) => void;
-}
+import { useTeamStore } from '@/store/teamStore';
+import { useAuth } from '@/hooks/useAuth';
 
-// API 데이터를 기존 UI 구조로 변환
+interface TeamSelectorProps {}
+
 interface Sport {
     id: string;
     name: string;
@@ -26,7 +25,9 @@ interface League {
     teams: Team[];
 }
 
-export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps) {
+export default function TeamSelector({}: TeamSelectorProps) {
+    const { myTeams, toggleTeam } = useTeamStore();
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const [sportsData, setSportsData] = useState<Sport[]>([]);
@@ -72,7 +73,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                     const sport = sportMap.get(sportId)!;
 
                     // League 찾기 또는 생성
-                    let league = sport.leagues.find(l => l.id === team.league_id);
+                    let league = sport.leagues.find((l: League) => l.id === team.league_id);
                     if (!league) {
                         league = {
                             id: team.league_id,
@@ -130,7 +131,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
 
     // Derived State
     const activeSport = sportsData.find(s => s.id === selectedSportId) || sportsData[0];
-    const activeLeague = activeSport?.leagues.find(l => l.id === selectedLeagueId) || activeSport?.leagues[0];
+    const activeLeague = activeSport?.leagues.find((l: League) => l.id === selectedLeagueId) || activeSport?.leagues[0];
 
     const controls = useDragControls();
 
@@ -229,7 +230,7 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                                 </div>
                                 {/* Row 2: Leagues */}
                                 <div className="h-12 flex items-center px-4 md:px-8 gap-6 overflow-x-auto no-scrollbar">
-                                    {activeSport?.leagues.map(league => (
+                                    {activeSport?.leagues.map((league: League) => (
                                         <button
                                             key={league.id}
                                             onClick={() => setSelectedLeagueId(league.id)}
@@ -245,12 +246,12 @@ export default function TeamSelector({ myTeams, toggleTeam }: TeamSelectorProps)
                             {/* 2. Teams List (Compact & Angular & Dynamic Colors) */}
                             <div className="flex-1 overflow-y-auto p-4 md:p-6 z-10 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-2">
-                                    {activeLeague?.teams.map(team => {
+                                    {activeLeague?.teams.map((team: Team) => {
                                         const isSelected = myTeams.some(t => t.id === team.id);
                                         return (
                                             <div
                                                 key={team.id}
-                                                onClick={() => toggleTeam(team)}
+                                                onClick={() => toggleTeam(team, user?.uid)}
                                                 className={`
                                                     group relative h-12 flex items-center justify-between px-4 cursor-pointer transition-all duration-150 border-2
                                                     ${isSelected

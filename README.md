@@ -56,9 +56,11 @@
 *   **Real-time Integration**: 커스텀 훅(`useSocket`)을 통한 전역 소켓 연결 관리 및 실시간 데이터 스트리밍 연동.
 *   **Next.js 16 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
 *   **State Management (Zustand)**: 
-    *   **Boilerplate-free State Logic**: Redux 대비 극도로 가벼운 구조를 채택하여 성능 오버헤드를 최소화.
-    *   `authStore`: JWT 기반 라이브 세션 및 사용자 프로필 상태를 경량화된 스토어로 관리.
-    *   `themeStore`: 사용자별 커스텀 팀 테마(색상 변수 실시간 주입) 설정을 전역적으로 동기화하여 고성능 테마 엔진 구동.
+    *   **Boilerplate-free State Logic**: Redux 대비 극도로 가벼운 구조를 채택하여 성능 오버헤드를 최소화하고, 기능을 분리하여 유지보수성을 높였습니다.
+    *   `authStore`: JWT 기반 라이브 세션 및 사용자 프로필 상태 관리.
+    *   `teamStore`: 팔로우 팀 선택, 순서 변경 및 테마 색상 동기화 API 연동.
+    *   `calendarStore`: 캘린더의 현재 날짜, 뷰 모드(Grid/List) 상태 유지 및 Persist 미들웨어 적용.
+    *   `uiStore`: 전역 로딩, 에러 핸들링 및 토스트 알림 통합 관리.
 *   **Data Fetching (React Query)**: `@tanstack/react-query`를 사용하여 서버 데이터 캐싱, **WebSocket 기반 실시간 리페칭** 전략 구현, 로딩 및 에러 상태의 선언적 처리.
 *   **Advanced UI**: Framer Motion을 활용한 GPU 가속 기반 애니메이션 및 `Suspense` 기반의 선언적 로딩 UI 처리.
 *   **Build Optimization**: `next.config.ts`의 최신 실험적 기능을 활용하여 트리쉐이킹(Tree-shaking) 및 최적화된 번들 기법 적용.
@@ -117,7 +119,9 @@
 단순한 폴링(Polling) 방식에서 벗어나, 데이터의 변경 사항이 발생하는 즉시 클라이언트로 전달되는 이벤트 기반 아키텍처를 구축했습니다.
 *   **SyncService**: 외부 API로부터 데이터를 동기화하고 변경된 점수나 상태가 감지되면 서버 내부 이벤트를 발생시킵니다.
 *   **MatchesGateway**: 해당 이벤트를 구독하여 연결된 모든 클라이언트 혹은 특정 팀을 팔로우한 세션에 실시간 패킷을 전송합니다.
-*   **Client (useSocket)**: 패킷 수신 즉시 React Query의 캐시 키(`['matches']`)를 무효화하여 화면을 갱신합니다.
+*   **Client (useSocket & useMatches)**: 
+    *   패킷 수신 시 전체 데이터를 다시 요청하는 대신, React Query의 `setQueriesData`를 활용하여 변경된 경기만 부분 업데이트(Optimistic/Partial Update)하거나 필요 시 캐시 키(`['matches']`)를 무효화하여 화면을 갱신합니다.
+    *   `useSuspenseQuery`와 `dynamic` import를 결합하여 데이터 로딩 중 선언적인 스켈레톤 UI를 제공합니다.
 
 ### 2. Next.js 16 Partial Prerendering (PPR) 적용
 사용자 경험을 극대화하기 위해 페이지의 정적 셸(Header, Navigation)은 빌드 타임에 미리 생성하고, 실시간 경기 데이터가 필요한 부분만 `Suspense`와 `cacheComponents`를 통해 동적으로 스트리밍합니다. 이를 통해 첫 로딩 속도(LCP)를 유지하면서도 데이터의 신선도를 보장합니다.
@@ -245,7 +249,7 @@ neuproject/
 │   │   ├── 📁 app         (앱 라우터 엔트리 포인트 및 페이지 라우팅)
 │   │   ├── 📁 components  (UI 및 기능별 독립 리액트 컴포넌트)
 │   │   ├── 📁 hooks       (테마 상태, 데이터 페칭 처리용 커스텀 훅)
-│   │   ├── 📁 stores      (Zustand 전역 상태 슬라이스)
+│   │   ├── 📁 stores      (auth, team, calendar, ui 전역 상태 스토어)
 │   ├── 📁 public          (로고 및 정적 에셋)
 │   └── 📄 package.json    (React 컴파일러, Tailwind CSS 등 의존성)
 ```

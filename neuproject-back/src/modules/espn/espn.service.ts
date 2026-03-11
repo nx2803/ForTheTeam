@@ -86,7 +86,9 @@ export class EspnService {
                 ),
             );
 
+            const calendarType = baseResponse.data.leagues?.[0]?.calendarType || 'day';
             const calendar = baseResponse.data.leagues?.[0]?.calendar || [];
+            
             if (calendar.length === 0) {
                 this.logger.warn(`No calendar found for ${config.name}`);
                 return baseResponse.data;
@@ -95,66 +97,51 @@ export class EspnService {
             const allEvents: any[] = [];
             const processedDates = new Set<string>();
 
-            // 2. 캘린더를 순회하며 데이터 수집
-            for (const yearEntry of calendar) {
-                // 특정 시즌 연도 필터링 (가져오려는 시즌과 일치하거나, 현재 연도 주변인 경우만)
-                const currentYear = new Date().getFullYear();
-                const entryYear = parseInt(yearEntry.label);
-                
-                if (season) {
-                    if (entryYear !== season && entryYear !== season - 1 && entryYear !== season + 1) continue;
-                } else {
-                    // 기본적으로는 최근 2년 정도의 데이터만 타겟팅 (너무 오래된 데이터 방지)
-                    if (entryYear < currentYear - 1 || entryYear > currentYear + 1) continue;
+            // 2. 캘린더 타입에 따른 수집 전략 분기
+            if (calendarType === 'list') {
+                // NFL 스타일: 연도/시즌별로 그룹화된 리스트 구조
+                for (const yearEntry of calendar) {
+                    const currentYear = new Date().getFullYear();
+                    const entryYear = parseInt(yearEntry.label);
+                    
+                    if (season) {
+                        if (entryYear !== season && entryYear !== season - 1 && entryYear !== season + 1) continue;
+                    } else {
+                        if (entryYear < currentYear - 1 || entryYear > currentYear + 1) continue;
+                    }
+
+                    const entries = yearEntry.entries || yearEntry.weeks || [];
+                    this.logger.log(`Processing ${config.name} calendar for ${yearEntry.label} (${entries.length} entries)`);
+
+                    for (const entry of entries) {
+                        await this.fetchAndAddEvents(config, {
+                            seasontype: yearEntry.value,
+                            [sportCode === 'NFL' ? 'week' : 'dates']: entry.value
+                        }, allEvents, processedDates);
+                    }
+                }
+            } else {
+                // NBA/NHL/MLB 스타일: 단순 날짜 배열 구조 (day 타입)
+                // 호출 횟수를 줄이기 위해 월별(YYYYMM)로 그룹화하여 요청
+                const monthSet = new Set<string>();
+                for (const dateStr of calendar) {
+                    if (typeof dateStr !== 'string') continue;
+                    // dateStr 예: "2025-10-02T07:00Z"
+                    const yyyymm = dateStr.substring(0, 7).replace('-', ''); // "202510"
+                    monthSet.add(yyyymm);
                 }
 
-                const entries = yearEntry.entries || yearEntry.weeks || [];
-                this.logger.log(`Processing ${config.name} calendar for ${yearEntry.label} (${entries.length} entries)`);
+                const months = Array.from(monthSet).sort();
+                this.logger.log(`Processing ${config.name} calendar for ${months.length} months`);
 
-                for (const entry of entries) {
-                    try {
-                        const params: Record<string, any> = { limit: 1000 };
-
-                        // 공통: seasontype이 있다면 활용 (NFL은 필수, 나머지는 옵션)
-                        if (yearEntry.value) {
-                            params.seasontype = yearEntry.value;
-                        }
-
-                        if (sportCode === 'NFL') {
-                            params.week = entry.value;
-                        } else {
-                            params.dates = entry.value;
-                        }
-
-                        const response = await firstValueFrom(
-                            this.httpService.get(
-                                `${this.apiUrl}/${config.sport}/${config.league}/scoreboard`,
-                                { params },
-                            ),
-                        );
-
-                        const events = response.data.events || [];
-                        let addedCount = 0;
-                        for (const event of events) {
-                            if (!processedDates.has(event.id)) {
-                                allEvents.push(event);
-                                processedDates.add(event.id);
-                                addedCount++;
-                            }
-                        }
-
-                        if (addedCount > 0) {
-                            this.logger.debug(
-                                `Fetched ${events.length} events (${addedCount} new) for ${config.name} ${yearEntry.label}-${entry.label || entry.value}`,
-                            );
-                        }
-                        
-                        // API 부하 방지
-                        await new Promise(resolve => setTimeout(resolve, 30));
-
-                    } catch (error: any) {
-                        this.logger.warn(`Failed to fetch ${config.name} entry ${entry.value}: ${error.message}`);
+                for (const month of months) {
+                    // 특정 시즌 필터링 (입력받은 season 연도 기준)
+                    if (season) {
+                        const mYear = parseInt(month.substring(0, 4));
+                        if (mYear !== season && mYear !== season - 1 && mYear !== season + 1) continue;
                     }
+                    
+                    await this.fetchAndAddEvents(config, { dates: month }, allEvents, processedDates);
                 }
             }
 
@@ -164,12 +151,52 @@ export class EspnService {
 
             // 기존 호환성을 위해 마지막 응답 구조에 전체 이벤트만 담아서 반환
             return { ...baseResponse.data, events: allEvents };
-
         } catch (error: any) {
             this.logger.error(
                 `Failed to fetch ${config.name} season schedule: ${error.message}`,
             );
             throw error;
+        }
+    }
+
+    /**
+     * API에서 이벤트를 가져와서 목록에 추가 (중복 제거 포함)
+     */
+    private async fetchAndAddEvents(
+        config: any,
+        params: Record<string, any>,
+        allEvents: any[],
+        processedDates: Set<string>
+    ) {
+        try {
+            const finalParams = { limit: 1000, ...params };
+            const response = await firstValueFrom(
+                this.httpService.get(
+                    `${this.apiUrl}/${config.sport}/${config.league}/scoreboard`,
+                    { params: finalParams },
+                ),
+            );
+
+            const events = response.data.events || [];
+            let addedCount = 0;
+            for (const event of events) {
+                if (!processedDates.has(event.id)) {
+                    allEvents.push(event);
+                    processedDates.add(event.id);
+                    addedCount++;
+                }
+            }
+
+            if (addedCount > 0) {
+                this.logger.debug(
+                    `Fetched ${events.length} events (${addedCount} new) for ${config.name} (params: ${JSON.stringify(params)})`,
+                );
+            }
+
+            // API 부하 방지
+            await new Promise(resolve => setTimeout(resolve, 50));
+        } catch (error: any) {
+            this.logger.warn(`Failed to fetch for ${config.name} with params ${JSON.stringify(params)}: ${error.message}`);
         }
     }
 

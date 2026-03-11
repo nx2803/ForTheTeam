@@ -37,7 +37,7 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(process.env.PORT ?? 3001);
-  console.log(`Application is running on: https://reasonable-elwira-270ml-6ed655f9.koyeb.app`);
-  console.log(`Swagger docs: https://reasonable-elwira-270ml-6ed655f9.koyeb.app/api-docs`);
+  console.log(`Application is running on: https://spectacular-robyn-nx2803-5829a51d.koyeb.app`);
+  console.log(`Swagger docs: https://spectacular-robyn-nx2803-5829a51d.koyeb.app/api-docs`);
 }
 bootstrap();

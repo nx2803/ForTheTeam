@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { FootballService } from '../football/football.service';
@@ -6,6 +6,8 @@ import { PandaScoreService } from '../pandascore/pandascore.service';
 import { EspnService } from '../espn/espn.service';
 import { KboService } from '../kbo/kbo.service';
 import { MatchesGateway } from '../matches/matches.gateway';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class SyncService {
@@ -18,14 +20,42 @@ export class SyncService {
         private espnService: EspnService,
         private kboService: KboService,
         private readonly matchesGateway: MatchesGateway,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
     ) { }
 
     /**
-     * 전체 일정 동기화 (매 12시간마다 - 새로운 일정 확보용)
+     * 개별 종목별 동기화 실행 (시간대 분산)
      */
-    @Cron('0 0 */12 * * *')
+    @Cron('0 0 0,12 * * *')
+    async cronFootball() {
+        this.logger.log('[CRON_STAGGERED] Starting Football synchronization...');
+        await this.syncFootball();
+        await this.clearSyncCache();
+        this.logger.log('[CRON_STAGGERED] Football synchronization completed');
+    }
+
+    @Cron('0 0 3,15 * * *')
+    async cronEspn() {
+        this.logger.log('[CRON_STAGGERED] Starting ESPN (MLB/NBA/NHL/NFL) synchronization...');
+        await this.syncEspn();
+        await this.clearSyncCache();
+        this.logger.log('[CRON_STAGGERED] ESPN synchronization completed');
+    }
+
+    @Cron('0 0 6,18 * * *')
+    async cronOthers() {
+        this.logger.log('[CRON_STAGGERED] Starting KBO/LCK synchronization...');
+        await this.syncLck();
+        await this.syncKbo();
+        await this.clearSyncCache();
+        this.logger.log('[CRON_STAGGERED] KBO/LCK synchronization completed');
+    }
+
+    /**
+     * 전체 일정 동기화 (수동 실행용)
+     */
     async syncAll() {
-        this.logger.log('[CRON_FULL] Starting full schedule synchronization...');
+        this.logger.log('[SYNC_MANUAL] Starting full schedule synchronization...');
 
         const results = {
             football: await this.syncFootball(),
@@ -34,57 +64,84 @@ export class SyncService {
             kbo: await this.syncKbo(),
         };
 
-        this.logger.log('[CRON_FULL] Full synchronization completed');
+        await this.clearSyncCache();
+        this.logger.log('[SYNC_MANUAL] Full synchronization completed');
         return results;
     }
 
+    private async clearSyncCache() {
+        try {
+            await this.cacheManager.reset();
+            this.logger.log('[SYNC] Cache cleared');
+        } catch (error) {
+            this.logger.warn(`Failed to clear cache: ${error.message}`);
+        }
+    }
+
     /**
-     * 라이브 스코어 동기화 (매 30분마다 - 현재 진행중이거나 오늘 경기 점수 업데이트)
+     * 라이브 스코어 동기화 (매 30분마다 - 오늘 + 진행중인 경기 점수 업데이트만)
+     * 전체 시즌 동기화(syncAll)가 아닌, 오늘 날짜 경기만 빠르게 처리
      */
     @Cron('0 */30 * * * *')
     async syncLiveScores() {
-        this.logger.log('[CRON_LIVE] Starting live scores synchronization...');
-        // 스코어 업데이트를 위해 syncAll을 재사용하거나 
-        // 추후 API별로 '오늘' 경기 전용 엔드포인트가 있다면 분리 가능
-        // 현재는 API들이 전체 혹은 최근 일정을 주므로 동일하게 수행하되 upsert 로직에서 쓰기 최소화
-        await this.syncAll();
+        this.logger.log('[CRON_LIVE] Starting live scores synchronization (today only)...');
+        try {
+            await this.syncEspnToday();
+        } catch (error) {
+            this.logger.error(`[CRON_LIVE] Live scores sync failed: ${error.message}`);
+        }
         this.logger.log('[CRON_LIVE] Live scores synchronization completed');
     }
 
     /**
-     * 유럽 축구 데이터 동기화
+     * 유럽 축구 데이터 동기화 (리그별 순차 처리로 메모리 최적화)
      */
     private async syncFootball() {
-        const data = await this.footballService.getAllLeagueMatches();
-        let count = 0;
+        this.logger.log('[SYNC_FOOTBALL] Starting football synchronization league by league...');
+        
+        const leagues = ['PL', 'BL1', 'PD', 'SA'] as const;
+        let totalCount = 0;
 
-        for (const [leagueCode, leagueData] of Object.entries(data)) {
-            const matches = (leagueData as any).matches || [];
-            const league = await this.getLeagueByExternalId(leagueCode);
-            if (!league) {
-                this.logger.warn(`League not found for code: ${leagueCode}`);
-                continue;
-            }
+        for (const leagueCode of leagues) {
+            try {
+                const response = await this.footballService.getMatches(leagueCode);
+                const matches = response.matches || [];
+                const league = await this.getLeagueByExternalId(leagueCode);
+                
+                if (!league) {
+                    this.logger.warn(`League not found for code: ${leagueCode}`);
+                    continue;
+                }
 
-            for (const m of matches) {
-                await this.upsertMatch({
-                    external_api_id: `FB_${m.id}`,
-                    league_id: league.id,
-                    league_code: league.code,
-                    home_team_name: m.homeTeam.name,
-                    away_team_name: m.awayTeam.name,
-                    home_team_external_id: `FB_${m.homeTeam.id}`,
-                    away_team_external_id: `FB_${m.awayTeam.id}`,
-                    match_at: new Date(m.utcDate),
-                    status: this.mapFootballStatus(m.status),
-                    home_score: m.score.fullTime.home ?? 0,
-                    away_score: m.score.fullTime.away ?? 0,
-                    venue: m.venue,
-                });
-                count++;
+                this.logger.log(`[SYNC_FOOTBALL] Processing ${matches.length} matches for ${league.name}`);
+
+                for (const m of matches) {
+                    await this.upsertMatch({
+                        external_api_id: `FB_${m.id}`,
+                        league_id: league.id,
+                        league_code: league.code,
+                        home_team_name: m.homeTeam.name,
+                        away_team_name: m.awayTeam.name,
+                        home_team_external_id: `FB_${m.homeTeam.id}`,
+                        away_team_external_id: `FB_${m.awayTeam.id}`,
+                        match_at: new Date(m.utcDate),
+                        status: this.mapFootballStatus(m.status),
+                        home_score: m.score.fullTime.home ?? 0,
+                        away_score: m.score.fullTime.away ?? 0,
+                        venue: m.venue,
+                    });
+                    totalCount++;
+                }
+
+                // 리그 간 처리 사이의 짧은 휴식 (가비지 컬렉션 및 API 부하 방지)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch (error) {
+                this.logger.error(`Failed to sync football league ${leagueCode}: ${error.message}`);
             }
         }
-        return count;
+
+        this.logger.log(`[SYNC_FOOTBALL] Completed football sync. Total ${totalCount} matches processed.`);
+        return totalCount;
     }
 
     /**
@@ -167,19 +224,17 @@ export class SyncService {
     }
 
     /**
-     * ESPN 스포츠 (NBA, MLB, NFL, NHL) 동기화
+     * ESPN 스포츠 (NBA, MLB, NFL, NHL) 전체 시즌 동기화
      */
     private async syncEspn() {
-        const results = await this.espnService.getAllSportsSchedule();
         let totalCount = 0;
 
-        for (const [sportCode, data] of Object.entries(results)) {
-            const events = (data as any).events || [];
-            this.logger.log(`[SYNC_ESPN] Received ${events.length} total events for ${sportCode}`);
+        await this.espnService.processAllSportsSchedule(async (sportCode, events) => {
+            this.logger.log(`[SYNC_ESPN] Processing ${events.length} total events for ${sportCode}`);
 
             if (events.length === 0) {
                 this.logger.warn(`[SYNC_ESPN] No events found to sync for ${sportCode}`);
-                continue;
+                return;
             }
 
             const league = await this.prisma.leagues.findFirst({ 
@@ -188,10 +243,15 @@ export class SyncService {
             
             if (!league) {
                 this.logger.warn(`[SYNC_ESPN] League not found in DB for: ${sportCode}`);
-                continue;
+                return;
             }
 
-            this.logger.log(`[SYNC_ESPN] Syncing ${events.length} events for ${sportCode}...`);
+            // 리그 팀 목록을 미리 한 번에 캐싱 (매 경기마다 findMany 방지)
+            const leagueTeamsCache = await this.prisma.teams.findMany({
+                where: { league_id: league.id }
+            });
+
+            this.logger.log(`[SYNC_ESPN] Syncing ${events.length} events for ${sportCode} (${leagueTeamsCache.length} teams cached)...`);
 
             for (const e of events) {
                 try {
@@ -216,19 +276,85 @@ export class SyncService {
                         home_score: parseInt(home.score) || 0,
                         away_score: parseInt(away.score) || 0,
                         venue: competition.venue?.fullName,
-                    });
+                    }, leagueTeamsCache);
                     totalCount++;
                 } catch (eventError) {
                     this.logger.error(`[SYNC_ESPN] Failed to sync event ${e.id}: ${eventError.message}`);
                 }
             }
+            
+            // 한 종목 처리가 끝나면 가비지 컬렉션을 위해 명시적으로 참조 해제 유도
+            (events as any) = null;
+        });
+
+        return totalCount;
+    }
+
+    /**
+     * ESPN 오늘 경기만 동기화 (라이브 스코어 업데이트용, 메모리 절약)
+     */
+    private async syncEspnToday() {
+        const sportCodes = ['NFL', 'NHL', 'NBA', 'MLB'] as const;
+        let totalCount = 0;
+
+        // 오늘 날짜 (YYYYMMDD)
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+
+        for (const sportCode of sportCodes) {
+            try {
+                const data = await this.espnService.getScoreboard(sportCode, todayStr);
+                const events = data.events || [];
+
+                if (events.length === 0) continue;
+
+                const league = await this.prisma.leagues.findFirst({ 
+                    where: { name: { contains: sportCode, mode: 'insensitive' } } 
+                });
+                if (!league) continue;
+
+                this.logger.log(`[SYNC_LIVE] Syncing ${events.length} today's ${sportCode} events...`);
+
+                for (const e of events) {
+                    try {
+                        const competition = e.competitions[0];
+                        if (!competition) continue;
+
+                        const home = competition.competitors.find((c: any) => c.homeAway === 'home');
+                        const away = competition.competitors.find((c: any) => c.homeAway === 'away');
+                        if (!home || !away) continue;
+
+                        await this.upsertMatch({
+                            external_api_id: `ESPN_${e.id}`,
+                            league_id: league.id,
+                            league_code: sportCode,
+                            home_team_name: home.team.displayName,
+                            away_team_name: away.team.displayName,
+                            home_team_external_id: `ESPN_${sportCode}_${home.team.id}`,
+                            away_team_external_id: `ESPN_${sportCode}_${away.team.id}`,
+                            match_at: new Date(e.date),
+                            status: this.mapEspnStatus(e.status.type.name),
+                            home_score: parseInt(home.score) || 0,
+                            away_score: parseInt(away.score) || 0,
+                            venue: competition.venue?.fullName,
+                        });
+                        totalCount++;
+                    } catch (eventError) {
+                        this.logger.error(`[SYNC_LIVE] Failed to sync event ${e.id}: ${eventError.message}`);
+                    }
+                }
+            } catch (error) {
+                this.logger.warn(`[SYNC_LIVE] Failed to fetch today's ${sportCode} scoreboard: ${error.message}`);
+            }
         }
+
+        this.logger.log(`[SYNC_LIVE] Total ${totalCount} today's ESPN events synced`);
         return totalCount;
     }
 
     // --- 헬퍼 메서드들 ---
 
-    private async upsertMatch(data: any) {
+    private async upsertMatch(data: any, leagueTeamsCache?: any[]) {
         if (!data.home_team_name || !data.away_team_name) return;
 
         const homeTeam = await this.findTeam(
@@ -236,12 +362,14 @@ export class SyncService {
             data.league_id,
             data.league_code,
             data.home_team_external_id,
+            leagueTeamsCache,
         );
         const awayTeam = await this.findTeam(
             data.away_team_name,
             data.league_id,
             data.league_code,
             data.away_team_external_id,
+            leagueTeamsCache,
         );
 
         const matchesModel = (this.prisma as any).matches;
@@ -314,18 +442,24 @@ export class SyncService {
                 },
             });
         } catch (error) {
-            // 중복 데이터 생성 시도 시 조용히 넘어가거나 업데이트 시도
+            // 중복 데이터 생성 시도 시 조용히 넘어가거거나 업데이트 시도
             if (error.code === 'P2002') {
                 this.logger.debug(`[SYNC_UP_RETRY] Race condition handled for ${data.external_api_id}`);
-                // 이미 존재한다면 다시 한번 update 수행 (선택적)
                 return;
             }
+            this.logger.error(`[SYNC_MATCH_ERROR] ${data.league_code} - ${data.external_api_id}: ${error.message}`);
+            if (error.stack) this.logger.debug(error.stack);
             throw error;
         }
     }
 
-    private async findTeam(name: string, leagueId: string, leagueCode?: string, externalApiId?: string) {
+    private async findTeam(name: string, leagueId: string, leagueCode?: string, externalApiId?: string, leagueTeamsCache?: any[]) {
         if (!name && !externalApiId) return null;
+
+        // 캐시가 있으면 DB 조회 없이 캐시에서만 검색
+        if (leagueTeamsCache) {
+            return this.findTeamFromCache(leagueTeamsCache, name, externalApiId);
+        }
 
         // 1. external_api_id 기반 최우선 매칭 (가장 정확함)
         if (externalApiId) {
@@ -379,22 +513,46 @@ export class SyncService {
         });
         if (normMatch) return normMatch;
 
-        // 6. 리그 범용 특화: 부분 일치 기반 검색 (KBO, LCK, La Liga 등)
+        // 6. 리그 전체 팀 조회 후 부분 일치 검색
         const allLeagueTeams = await this.prisma.teams.findMany({
             where: { league_id: leagueId }
         });
+
+        return this.findTeamFromCache(allLeagueTeams, cleanName, externalApiId);
+    }
+
+    /**
+     * 캐시된 팀 목록에서 팀 검색 (DB 조회 없음)
+     */
+    private findTeamFromCache(teams: any[], name?: string, externalApiId?: string) {
+        if (!teams || teams.length === 0) return null;
+
+        // external_api_id 기반 검색
+        if (externalApiId) {
+            const byId = teams.find(t => t.external_api_id === externalApiId);
+            if (byId) return byId;
+        }
+
+        if (!name) return null;
+        const cleanName = name.trim();
+
+        // 정확한 이름 일치
+        const exact = teams.find(t => t.name === cleanName);
+        if (exact) return exact;
+
+        // 대소문자 무시 일치
+        const caseInsensitive = teams.find(t => t.name.toLowerCase() === cleanName.toLowerCase());
+        if (caseInsensitive) return caseInsensitive;
 
         // 악센트 제거 및 특수문자 제거한 비교용 이름 생성
         const simplifier = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9가-힣]/g, "").toLowerCase();
         const simpleCleanName = simplifier(cleanName);
 
-        const found = allLeagueTeams.find(t => {
+        const found = teams.find(t => {
             const simpleDbName = simplifier(t.name);
             return simpleCleanName.includes(simpleDbName) || simpleDbName.includes(simpleCleanName);
         });
-        if (found) return found;
-
-        return null;
+        return found || null;
     }
 
     /**

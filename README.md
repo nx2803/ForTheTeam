@@ -21,6 +21,7 @@
 *   **📅 Unified Sports Data Aggregation**:
     *   **다중 소스 통합**: Football-Data.org (유럽 축구), PandaScore (LCK), ESPN (NBA/MLB/NFL/NHL), Naver (KBO) 등 다중 외부 API 연동.
     *   **이기종 데이터 정규화**: 서로 다른 형식의 API 응답을 하나의 규격화된 도메인 모델(League, Team, Match)로 Normalization 처리.
+    *   **Season-Aware Sync**: MLB, NBA 등 북미 스포츠의 경우 Regular Season과 Postseason 데이터를 정밀하게 구분하여 수집함으로써 시즌 전환기 데이터 누락 방지.
     *   **Decoupled Architecture**: NestJS 어댑터 패턴을 활용하여 특정 API 공급자의 사양 변경이 전체 비즈니스 로직에 미치는 영향을 최소화.
 *   **🌐 Intelligent Timezone Normalization**:
     *   외부 API의 UTC 시간과 수동 입력된 로컬 시간을 자동으로 식별하여 사용자 현지 시간에 맞게 변환.
@@ -95,8 +96,11 @@
     *   `PandaScoreModule`: LCK 등 e스포츠 데이터 가공.
     *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동. 
     *   `KBOModule`: 네이버 스포츠의 **내부 API 게이트웨이**를 리버스 엔지니어링하여 국내 야구 데이터를 가장 신속하고 정확하게 동기화.
-*   **Data Synchronization (SyncService)**: `Cron` 작업과 WebSocket 브로드캐스트를 결합한 실시간 데이터 파이프라인. DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키는 **Smart Emit** 로직 탑재. 특정 어댑터(예: KBO 크롤링 패턴 등)가 CORS/Rate-limit(403/429) 및 쿼터 등의 사유로 실패하더라도 `this.logger.error` 처리 후 전체 동기화 파이프라인이 중단되지 않도록 Failover 메커니즘이 탑재. (Prisma 트랜잭션 기반의 데이터 무결성 보장)
-*   **Distributed Caching (CacheManager)**: `CacheModule`과 Redis 스토어를 연동하여 고비용 쿼리 결과(경기 일정 등)를 캐싱. Redis 미구동 환경에서도 서버가 중단되지 않도록 **In-memory fallback** 로직이 적용되어 안정성 확보.
+*   **Data Synchronization (SyncService)**: 
+    *   **Staggered Cron Scheduling**: Koyeb 메모리 자원 최적화를 위해 종목별 동기화 실행 시간을 분산(축구 00시, ESPN 03시, KBO/LCK 06시 등)하여 메모리 피크 방지.
+    *   **Sequential Processing Pipeline**: 대규모 데이터 처리 시 종목 및 리그별 순차 처리를 강제하고, 처리 사이의 명시적 Delay를 부여하여 JavaScript Heap 메모리 효율성 극대화 (OOM 방지).
+    *   **Smart Emit & Cache Control**: DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키며, 대규모 동기화 완료 후 즉각적인 **서버 캐시 리셋**을 통해 유저에게 최신 정보 제공.
+    *   **Resilient API Handling**: 특정 어댑터가 Rate-limit(403/429) 등으로 실패하더라도 전체 파이프라인이 중단되지 않도록 Failover 메커니즘 탑재.
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
 
 ### 🗄️ 데이터베이스 및 인프라 (DB & Infra)

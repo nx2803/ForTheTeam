@@ -23,7 +23,22 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+MLB, NBA, 해외축구 등 다양한 스포츠 경기 일정을 ESPN, Football-Data.org 등의 API로부터 수집하고 제공하는 백엔드 서버입니다.
+
+## Data Synchronization (Cron Jobs)
+
+서버 자원(Koyeb 메모리 환경)의 효율적인 사용을 위해 동기화 작업이 시간대별로 분산되어 실행됩니다.
+
+- **라이브 스코어 정규 동기화**: 매 30분마다 금일 경기 스코어 업데이트
+- **축구 리그 동기화 (00:00, 12:00)**: 유럽 4대 리그(PL, Bundesliga, La Liga, Serie A) 일정 수집
+- **ESPN 스포츠 동기화 (03:00, 15:00)**: MLB, NBA, NHL, NFL 전체 일정 수집
+- **기타 종목 동기화 (06:00, 18:00)**: KBO, LCK 일정 수집
+
+### Optimization Strategies
+- **Staggered Scheduling**: 대규모 데이터 수집 작업을 분산하여 메모리 피크 방지
+- **Sequential Processing**: 종목 및 리그별 순차 처리를 통해 JavaScript Heap 메모리 최적화 (OOM 방지)
+- **Smart Upsert**: 변경 사항이 있는 경기만 DB에 업데이트하여 I/O 부하 감소
+- **Cache Invalidation**: 동기화 직후 서버 캐시(`CacheManager`)를 리셋하여 최신 데이터 즉각 반영
 
 ## Project setup
 

@@ -143,7 +143,7 @@ export class EspnService {
                 }
 
                 const months = Array.from(monthSet).sort();
-                this.logger.log(`Processing ${config.name} calendar for ${months.length} months (Calendar + Year Full-scan)`);
+                this.logger.log(`Processing ${config.name} calendar for ${months.length} months with Season Types (2, 3)`);
 
                 for (const month of months) {
                     // 특정 시즌 필터링 (입력받은 season 연도 기준)
@@ -152,7 +152,14 @@ export class EspnService {
                         if (mYear !== season && mYear !== season - 1 && mYear !== season + 1) continue;
                     }
                     
-                    await this.fetchAndAddEvents(config, { dates: month }, allEvents, processedDates);
+                    // Regular Season (2)와 Postseason (3)을 모두 확실히 긁어옴
+                    // dates와 seasontype을 같이 명시해야 누락이 없음
+                    for (const type of [2, 3]) {
+                        await this.fetchAndAddEvents(config, { 
+                            dates: month,
+                            seasontype: type 
+                        }, allEvents, processedDates);
+                    }
                 }
             }
 
@@ -213,6 +220,7 @@ export class EspnService {
 
     /**
      * 모든 스포츠(NFL, NHL, NBA, MLB) 시즌 전체 일정 한번에 가져오기
+     * 각 스포츠 처리 후 GC 유도를 위해 순차 처리 + 일시정지
      */
     async getAllSportsSchedule() {
         const results: Record<string, any> = {};
@@ -225,8 +233,32 @@ export class EspnService {
                 this.logger.error(`Failed to fetch ${code} season schedule: ${error.message}`);
                 results[code] = { error: error.message, events: [] };
             }
+            // 각 종목 처리 후 잠시 대기 (GC 유도 및 API 부하 분산)
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         return results;
+    }
+
+    /**
+     * 모든 스포츠(NFL, NHL, NBA, MLB) 시즌 전체 일정을 콜백으로 처리 (메모리 절약)
+     * 각 스포츠의 이벤트를 메모리에 전부 쌓지 않고 즉시 콜백으로 전달
+     */
+    async processAllSportsSchedule(
+        callback: (sportCode: string, events: any[]) => Promise<void>
+    ) {
+        for (const code of Object.keys(SPORTS) as SportCode[]) {
+            try {
+                this.logger.log(`Triggering full season sync for ${code}...`);
+                const data = await this.getSeasonSchedule(code);
+                const events = data.events || [];
+                await callback(code, events);
+                // 처리 완료 후 메모리 해제를 위한 대기
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (error: any) {
+                this.logger.error(`Failed to process ${code} season schedule: ${error.message}`);
+                await callback(code, []);
+            }
+        }
     }
 }

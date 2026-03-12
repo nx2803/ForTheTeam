@@ -13,6 +13,7 @@ interface TeamState {
     fetchFollowedTeams: (memberUid: string) => Promise<void>;
     toggleTeam: (team: Team, memberUid?: string) => Promise<void>;
     reorderTeams: (newTeams: Team[], memberUid?: string) => void;
+    clearMyTeams: () => void;
 }
 
 export const useTeamStore = create<TeamState>()(
@@ -92,7 +93,9 @@ export const useTeamStore = create<TeamState>()(
                 if (memberUid) {
                     localStorage.setItem(`teamOrder_${memberUid}`, JSON.stringify(newTeams.map(t => t.id)));
                 }
-            }
+            },
+
+            clearMyTeams: () => set({ myTeams: [], error: null })
         }),
         {
             name: 'team-storage',

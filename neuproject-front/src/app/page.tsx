@@ -64,11 +64,11 @@ export default function Home() {
         </div>
       </div>
 
-       {/* 2. Floating Header */}
+      {/* 2. Floating Header */}
       <Header isPending={isPending} startTransition={startTransition} />
 
       {/* 3. Main Content Area */}
-      <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-20 md:pt-24 pb-16 md:pb-6 relative z-10 flex flex-col justify-stretch">
+      <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-20 md:pt-24 pb-20 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
             <LoadingSpinner size="xl" text="LOADING SPORTS DATA..." />

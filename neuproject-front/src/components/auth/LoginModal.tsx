@@ -103,7 +103,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
                             {/* Header */}
                             <div className="text-center mb-8">
-                                <h2 className="text-4xl font-black font-oswald text-white uppercase italic tracking-tighter">
+                                <h2 className="text-4xl font-black font-oswald text-white uppercase tracking-tighter">
                                     {mode === 'login' ? 'MEMBER' : 'CREATE'} <span className="text-sport-red">{mode === 'login' ? 'LOGIN' : 'ACCOUNT'}</span>
                                 </h2>
                                 <p className="text-zinc-500 font-mono text-xs mt-2 uppercase tracking-widest">
@@ -172,9 +172,9 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full bg-white text-black font-black font-oswald text-xl italic uppercase py-3 mt-4 hover:bg-sport-red hover:text-white transition-all duration-300 -skew-x-6 group disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-white text-black font-black font-oswald text-xl italic uppercase py-3 mt-4 hover:bg-sport-red hover:text-white transition-all duration-300 group disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <span className="block skew-x-6 group-hover:scale-110 transition-transform">
+                                    <span className="block group-hover:scale-110 transition-transform">
                                         {isLoading ? (
                                             <div className="flex items-center justify-center gap-2">
                                                 <LoadingSpinner size="sm" text="" />

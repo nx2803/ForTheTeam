@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import LoginModal from '@/components/auth/LoginModal';
+import AboutModal from '@/components/ui/AboutModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useCalendarStore } from '@/store/calendarStore';
@@ -16,6 +17,7 @@ interface HeaderProps {
 
 export default function Header({ isPending, startTransition }: HeaderProps) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isAboutOpen, setIsAboutOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { themeColors, setMainTeam, mainTeam } = useTheme();
     const { user, isLoggedIn, logout, handleLoginSuccess } = useAuth();
@@ -196,6 +198,15 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                     className="absolute right-0 mt-2 w-40 bg-zinc-900 border border-zinc-700 shadow-2xl py-1 z-50 overflow-hidden"
                                 >
                                     <button
+                                        onClick={() => {
+                                            setIsAboutOpen(true);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-zinc-400 hover:text-white text-[10px] font-bold uppercase transition-colors border-b border-zinc-800"
+                                    >
+                                        About
+                                    </button>
+                                    <button
                                         onClick={handleLogout}
                                         className="w-full px-4 py-3 text-left text-zinc-400 hover:text-sport-red text-[10px] font-bold uppercase transition-colors"
                                     >
@@ -244,9 +255,20 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                                 <p className="text-zinc-500 text-[10px] mt-1 truncate">{user?.email}</p>
                                             </div>
                                             <button
+                                                onClick={() => {
+                                                    setIsAboutOpen(true);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                                className="w-full px-4 py-3 text-left text-zinc-400 hover:bg-white/5 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-3 border-b border-zinc-800"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                About
+                                            </button>
+                                            <button
                                                 onClick={handleLogout}
                                                 className="w-full px-4 py-3 text-left text-zinc-400 hover:bg-red-900/20 hover:text-sport-red transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-3"
                                             >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                                 Logout
                                             </button>
                                         </motion.div>
@@ -263,6 +285,12 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                 isOpen={isLoginOpen}
                 onClose={() => setIsLoginOpen(false)}
                 onLoginSuccess={handleLoginSuccess}
+            />
+
+            {/* About Modal */}
+            <AboutModal
+                isOpen={isAboutOpen}
+                onClose={() => setIsAboutOpen(false)}
             />
         </>
     );

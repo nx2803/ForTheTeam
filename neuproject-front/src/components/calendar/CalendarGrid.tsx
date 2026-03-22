@@ -115,7 +115,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                     {/* Score/Time */}
                                     <div className="mx-1.5 flex flex-col items-center justify-center min-w-8 md:min-w-10">
                                         {isFinished ? (
-                                            <span className="font-mono text-xs md:text-sm font-black leading-none" style={{ color: themeColors.primary }}>
+                                            <span className="font-mono text-xs md:text-sm font-black leading-none text-white">
                                                 {ev.score}
                                             </span>
                                         ) : (

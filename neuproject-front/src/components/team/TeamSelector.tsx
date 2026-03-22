@@ -156,42 +156,46 @@ export default function TeamSelector({}: TeamSelectorProps) {
         >
             {/* Unified Container */}
             <div
-                className="w-full h-[75vh] md:h-[60vh] bg-black/95 backdrop-blur-xl pointer-events-auto flex flex-col relative border-t-4"
+                className="w-full h-[75vh] md:h-[60vh] bg-zinc-950 pointer-events-auto flex flex-col relative border-t-2"
                 style={{
                     borderTopColor: themeColors.primary,
-                    boxShadow: `0 -20px 50px ${themeColors.primary}33` // 20% 투명도 쉐도우
+                    boxShadow: isOpen ? `0 -20px 60px -10px ${themeColors.primary}33` : 'none'
                 }}
             >
 
                 {/* --- Ticker-style Peeking Handle (Restored) --- */}
                 <div className="absolute -top-10 md:-top-12 left-0 right-0 h-10 md:h-12 z-50 flex justify-center pointer-events-none">
                     <div
-                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-4 md:px-6 pointer-events-auto transition-colors group shadow-lg"
-                        style={{ backgroundColor: themeColors.primary }}
+                        className="w-full md:w-1/3 h-full cursor-pointer flex items-center justify-between px-4 md:px-6 pointer-events-auto transition-all group bg-zinc-950 border-t-2 border-x-2 relative overflow-hidden"
+                        style={{ borderColor: themeColors.primary }}
                         onPointerDown={(e) => controls.start(e)}
                         onClick={() => setIsOpen(!isOpen)}
                     >
+                        {/* Ticker-style Decorative Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-0 pointer-events-none opacity-50"></div>
+
                         <span
-                            className="font-oswald font-black uppercase tracking-widest text-sm md:text-lg"
-                            style={{ color: themeColors.primaryText }}
+                            className="relative z-10 font-oswald font-bold uppercase tracking-[0.2em] text-sm md:text-base"
+                            style={{ color: themeColors.primary }}
                         >
                             {isOpen ? "CLOSE FEED" : "CUSTOMIZE TEAM"}
                         </span>
-                        <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-black/20"></div>
-                            <div className="w-2 h-2 bg-black/20"></div>
-                            <div className="w-2 h-2 bg-black/20"></div>
+                        <div className="relative z-10 flex gap-1">
+                            <div className="w-2 h-2 opacity-40 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: themeColors.primary }}></div>
+                            <div className="w-2 h-2 opacity-40 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: themeColors.primary }}></div>
+                            <div className="w-2 h-2 opacity-40 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: themeColors.primary }}></div>
                         </div>
                     </div>
                 </div>
 
                 {/* --- Main Content (Ticker Style List) --- */}
-                <div className="flex-1 flex flex-col relative overflow-hidden bg-black/50">
+                <div className="flex-1 flex flex-col relative overflow-hidden">
 
-                    {/* Decorative Background Lines */}
-                    <div className="absolute inset-0 z-0 opacity-10 pointer-events-none"
-                        style={{ backgroundImage: 'repeating-linear-gradient(45deg, #333 0, #333 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px' }}>
+                    {/* Premium Sport-Tech Background Pattern */}
+                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
+                        style={{ backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize: '15px 15px' }}>
                     </div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 z-0 pointer-events-none"></div>
 
                     {isLoading ? (
                         <div className="flex-1 flex items-center justify-center">
@@ -207,19 +211,19 @@ export default function TeamSelector({}: TeamSelectorProps) {
                         <>
                             {/* 1. Sport & League Selector (Split Lines) */}
                             <div
-                                className="bg-[#111] border-b flex flex-col z-10 shrink-0"
+                                className="bg-zinc-950 border-b flex flex-col z-10 shrink-0"
                                 style={{ borderBottomColor: themeColors.secondary }}
                             >
                                 {/* Row 1: Sports */}
                                 <div
                                     className="h-12 flex items-center px-4 md:px-8 gap-4 overflow-x-auto no-scrollbar border-b"
-                                    style={{ borderBottomColor: themeColors.secondary + '30' }}
+                                    style={{ borderBottomColor: themeColors.secondary + '40' }}
                                 >
                                     {sportsData.map(sport => (
                                         <button
                                             key={sport.id}
                                             onClick={() => { setSelectedSportId(sport.id); setSelectedLeagueId(sport.leagues[0]?.id || ''); }}
-                                            className={`px-3 py-1 font-oswald font-bold uppercase tracking-wider text-sm transition-all ${selectedSportId === sport.id
+                                            className={`px-3 py-1 font-oswald font-semibold uppercase tracking-wider text-sm transition-all ${selectedSportId === sport.id
                                                 ? 'bg-white text-black'
                                                 : 'text-zinc-500 hover:text-white'}`}
                                         >
@@ -253,10 +257,14 @@ export default function TeamSelector({}: TeamSelectorProps) {
                                                 key={team.id}
                                                 onClick={() => toggleTeam(team, user?.uid)}
                                                 className={`
-                                                    group relative h-12 flex items-center justify-between px-4 cursor-pointer transition-all duration-150 border-2
+                                                    group relative h-12 flex items-center justify-between px-4 cursor-pointer transition-all duration-150 border-2 overflow-hidden
                                                     ${isSelected
-                                                        ? 'bg-zinc-700 text-white border-white shadow-lg'
-                                                        : 'bg-white/5 text-zinc-400 border-transparent hover:bg-white/10 hover:text-white hover:border-white/50'}`}
+                                                        ? 'text-white border-white/20'
+                                                        : 'bg-white/5 text-zinc-400 border-transparent hover:bg-white/10 hover:text-white hover:border-white/20'}`}
+                                                style={{
+                                                    backgroundColor: isSelected ? `${themeColors.primary}20` : undefined,
+                                                    borderColor: isSelected ? themeColors.primary : undefined
+                                                }}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     {team.logoUrl ? (
@@ -275,24 +283,15 @@ export default function TeamSelector({}: TeamSelectorProps) {
                                                     </span>
                                                 </div>
 
-                                                {/* Status Indicator (Checkmark with contrast) */}
-                                                <div className="flex items-center">
+                                                {/* High-End Status Indicator (Vertical Accent Bar) */}
+                                                <div className="flex items-center h-full relative z-20">
                                                     {isSelected ? (
-                                                        <div
-                                                            className="flex items-center justify-center w-6 h-6 rounded-full shadow-sm"
-                                                            style={{ backgroundColor: themeColors.primaryText }}
-                                                        >
-                                                            <svg
-                                                                className="w-4 h-4 stroke-current stroke-3"
-                                                                viewBox="0 0 24 24"
-                                                                fill="none"
-                                                                style={{ color: themeColors.primary }}
-                                                            >
-                                                                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                                                            </svg>
-                                                        </div>
+                                                        <div 
+                                                            className="absolute -right-4 top-[-24px] bottom-[-24px] w-1.5 shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                                                            style={{ backgroundColor: themeColors.primary }}
+                                                        />
                                                     ) : (
-                                                        <span className="text-white/10 group-hover:text-white/50 text-xs">///</span>
+                                                        <span className="text-white/10 group-hover:text-white/30 text-xs font-black">///</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -305,11 +304,10 @@ export default function TeamSelector({}: TeamSelectorProps) {
 
                     {/* Footer Info */}
                     <div
-                        className="h-8 flex items-center justify-between px-6 text-[10px] font-mono font-bold uppercase tracking-widest z-20 border-t-2"
+                        className="h-10 flex items-center justify-between px-6 text-[10px] font-mono font-black uppercase tracking-[0.2em] z-20 border-t bg-zinc-950"
                         style={{
-                            backgroundColor: themeColors.primary, // 배경은 여전히 primary/red 유지할 수도 있지만 보조색상 강조 가능
                             borderTopColor: themeColors.secondary,
-                            color: themeColors.primaryText // 배경이 primary면 primaryText, secondary면 secondaryText 사용
+                            color: themeColors.primary
                         }}
                     >
                         <span>{myTeams.length} TEAMS ACTIVE</span>

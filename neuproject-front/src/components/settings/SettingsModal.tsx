@@ -134,7 +134,7 @@ export default function SettingsModal({ isOpen, onClose, myTeams }: SettingsModa
                                                         key={team.id}
                                                         onClick={() => handleTeamSelect(team)}
                                                         className={`
-                                                            group relative p-1 transition-all duration-300 transform rounded-sm
+                                                            group relative p-1 transition-all duration-300 transform
                                                             ${isSelected ? 'scale-[1.02]' : 'hover:scale-[1.01]'}
                                                         `}
                                                     >
@@ -232,7 +232,7 @@ export default function SettingsModal({ isOpen, onClose, myTeams }: SettingsModa
                                                         color: '#FFFFFF'
                                                     }}
                                                 >
-                                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full" style={{ backgroundColor: themeColors.secondary }} />
+                                                    <div className="absolute top-2 right-2 w-2 h-2" style={{ backgroundColor: themeColors.secondary }} />
                                                     <span className="text-[8px] uppercase tracking-widest opacity-60 font-bold mb-1">Secondary Accent</span>
                                                     <span className="font-oswald font-black text-xl italic uppercase leading-none" style={{ color: themeColors.secondary }}>ACCENT BORDER</span>
                                                 </div>

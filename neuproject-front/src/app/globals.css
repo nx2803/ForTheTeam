@@ -5,8 +5,8 @@
   --foreground: #171717;
 
   /* Theme colors (동적으로 업데이트됨) */
-  --color-primary: #ff4655;
-  --color-secondary: #000000;
+  --color-primary: #e23645;
+  --color-secondary: #71717a;
   --color-primary-text: #FFFFFF;
   --color-secondary-text: #FFFFFF;
 }

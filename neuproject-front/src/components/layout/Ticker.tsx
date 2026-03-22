@@ -55,18 +55,13 @@ export default function Ticker({}: TickerProps) {
         fetchRecentMatches();
     }, [isLoggedIn, user?.uid, teamIds]);
 
-    // 대비 색상에 따른 텍스트 컬러 결정
-    const isDarkText = themeColors.primaryText === '#000000';
-    const contrastTextClass = isDarkText ? "text-black" : "text-white";
-    const accentTextClass = isDarkText ? "text-black/70" : "text-white/80";
-    const subTextClass = isDarkText ? "text-black/30" : "text-white/30";
 
     const tickerContent = (
         <React.Fragment>
             {isLoading ? (
                 <div className="flex items-center gap-3">
                     <LoadingSpinner size="sm" text="" />
-                    <span className={contrastTextClass}>LOADING LATEST RESULTS</span>
+                    <span className="text-zinc-400">LOADING LATEST RESULTS</span>
                 </div>
             ) : recentMatches.length > 0 ? (
                 recentMatches.map((match, idx) => {
@@ -75,24 +70,23 @@ export default function Ticker({}: TickerProps) {
                     const score = `${match.home_score} - ${match.away_score}`;
                     return (
                         <React.Fragment key={match.id}>
-                            <span className={contrastTextClass}>
+                            <span className="text-white">
                                 {homeName}{" "}
-                                <span className={accentTextClass}>{score}</span>{" "}
+                                <span style={{ color: themeColors.primary }} className="font-black mx-1">{score}</span>{" "}
                                 {awayName}
                             </span>
-                            <span className={`${subTextClass} mx-4`}>///</span>
+                            <span className="text-zinc-700 mx-4">///</span>
                         </React.Fragment>
                     );
                 })
             ) : (
-                <span className={contrastTextClass}>NO RECENT MATCH RESULTS FOR YOUR TEAMS</span>
+                <span className="text-zinc-500">NO RECENT MATCH RESULTS FOR YOUR TEAMS</span>
             )}
-            {/* 팔로우 팀이 없을 때만 가이드 문구 표시 */}
             {(!myTeams || myTeams.length === 0) && (
                 <React.Fragment>
-                    {!isLoading && <span className={`${subTextClass} mx-4`}>///</span>}
-                    <span className={`${accentTextClass} font-black`}>SELECT YOUR TEAM FOR CUSTOM SCHEDULE</span>
-                    <span className={`${subTextClass} mx-4`}>///</span>
+                    {!isLoading && <span className="text-zinc-700 mx-4">///</span>}
+                    <span className="text-zinc-400 font-bold">SELECT YOUR TEAM FOR CUSTOM SCHEDULE</span>
+                    <span className="text-zinc-700 mx-4">///</span>
                 </React.Fragment>
             )}
         </React.Fragment>
@@ -100,15 +94,14 @@ export default function Ticker({}: TickerProps) {
 
     return (
         <div
-            className="fixed top-0 inset-x-0 h-10 z-50 flex items-center overflow-hidden select-none shadow-lg transition-all duration-500"
+            className="fixed top-0 inset-x-0 h-10 z-50 flex items-center overflow-hidden select-none bg-zinc-950/80 backdrop-blur-md shadow-2xl transition-all duration-500"
             style={{
-                backgroundColor: themeColors.primary,
-                borderBottom: `2px solid ${isDarkText ? themeColors.secondary : 'rgba(255,255,255,0.1)'}`
+                borderBottom: `2px solid ${themeColors.primary}`
             }}
         >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 z-10 pointer-events-none opacity-50"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-10 pointer-events-none opacity-50"></div>
             <motion.div
-                className="flex whitespace-nowrap font-oswald font-bold text-base tracking-widest uppercase items-center"
+                className="flex whitespace-nowrap font-oswald font-bold text-sm tracking-[0.2em] uppercase items-center"
                 animate={{ x: ["0%", "-50%"] }}
                 transition={{ repeat: Infinity, ease: "linear", duration: 70 }}
                 style={{ width: "fit-content" }}

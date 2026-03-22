@@ -52,7 +52,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
 
     return (
         <>
-            <header className="fixed top-8 md:top-12 inset-x-0 md:inset-x-8 z-40 flex items-center justify-between px-4 md:px-0 py-2 md:py-0 pointer-events-auto">
+            <header className="fixed top-16 inset-x-0 z-40 flex items-center justify-between px-4 md:px-10 py-2 md:py-0 pointer-events-auto">
                 <div className="flex items-center gap-4 md:gap-8">
                     <div className="flex flex-col group cursor-pointer shrink-0" onClick={() => window.location.href = '/'}>
                         <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic font-oswald text-white leading-[0.85] flex gap-1 md:gap-3">
@@ -65,10 +65,13 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                     </div>
 
                     {/* Original View Toggle Switch - Desktop Only */}
-                    <div className="hidden xl:flex bg-[#18181b]/80 backdrop-blur-md border border-zinc-700 rounded-lg p-1 relative shrink-0 w-25 md:w-30">
+                    <div 
+                        className="hidden xl:flex bg-[#18181b]/80 backdrop-blur-md border p-1 relative shrink-0 w-25 md:w-30"
+                        style={{ borderColor: themeColors.secondary }}
+                    >
                         <div className="absolute inset-1">
                             <motion.div
-                                className="absolute top-0 bottom-0 rounded shadow-md"
+                                className="absolute top-0 bottom-0 shadow-md"
                                 initial={false}
                                 animate={{
                                     left: viewMode === 'calendar' ? '0%' : '50%',
@@ -124,7 +127,8 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                     {/* Desktop Team Filter */}
                     <div className="hidden sm:flex items-center gap-2">
                         <div
-                            className="relative bg-[#18181b]/80 backdrop-blur-md px-3 md:px-4 flex items-center justify-end gap-2 border border-zinc-700 shadow-xl h-10 md:h-14 shrink-0 rounded-lg"
+                            className="relative bg-[#18181b]/80 backdrop-blur-md px-3 md:px-4 flex items-center justify-end gap-2 border shadow-xl h-10 md:h-14 shrink-0"
+                            style={{ borderColor: themeColors.secondary }}
                         >
                             <div className="flex flex-col mr-auto">
                                 <button
@@ -138,7 +142,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                     onClick={() => setIsReorderMode(!isReorderMode)}
                                     className={`text-[8px] font-mono font-bold uppercase tracking-tighter transition-all duration-200 flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600 hover:text-zinc-400'}`}
                                 >
-                                    <span className={`w-1.5 h-1.5 rounded-full ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
+                                    <span className={`w-1.5 h-1.5 ${isReorderMode ? 'bg-sport-red animate-pulse' : 'bg-current'}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : undefined }}></span>
                                     {isReorderMode ? 'EDIT' : 'SORT'}
                                 </button>
                             </div>
@@ -154,7 +158,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                         value={team}
                                         dragListener={isReorderMode}
                                         className={`
-                                            w-7 h-7 md:w-9 md:h-9 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer transition-all duration-300
+                                            w-7 h-7 md:w-9 md:h-9 shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer transition-all duration-300
                                             ${selectedTeamId === team.id ? 'scale-110 opacity-100' : (!selectedTeamId ? 'opacity-100' : 'opacity-40 brightness-50 hover:opacity-100 hover:brightness-100')}
                                         `}
                                         onClick={() => !isReorderMode && setMainTeam(selectedTeamId === team.id ? null : team)}
@@ -182,9 +186,10 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                         ) : (
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="px-4 py-2 bg-zinc-900 border border-zinc-700 text-white text-[10px] font-black font-oswald tracking-widest uppercase shadow-md active:scale-95 flex items-center gap-2"
+                                className="px-4 py-2 bg-zinc-900 border text-white text-[10px] font-black font-oswald tracking-widest uppercase shadow-md active:scale-95 flex items-center gap-2"
+                                style={{ borderColor: themeColors.secondary }}
                             >
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                <span className="w-1.5 h-1.5 bg-green-500"></span>
                                 {user?.nickname}
                             </button>
                         )}
@@ -195,7 +200,8 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="absolute right-0 mt-2 w-40 bg-zinc-900 border border-zinc-700 shadow-2xl py-1 z-50 overflow-hidden"
+                                    className="absolute right-0 mt-2 w-40 bg-zinc-900 border shadow-2xl py-1 z-50 overflow-hidden"
+                                    style={{ borderColor: themeColors.secondary }}
                                 >
                                     <button
                                         onClick={() => {
@@ -222,7 +228,8 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                         {!isLoggedIn ? (
                             <button
                                 onClick={() => setIsLoginOpen(true)}
-                                className="relative px-8 py-3 bg-white text-black text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden"
+                                className="relative h-10 md:h-14 px-8 bg-white border text-black text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 group overflow-hidden flex items-center justify-center"
+                                style={{ borderColor: themeColors.secondary }}
                             >
                                 <div
                                     className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
@@ -236,9 +243,10 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                             <>
                                 <button
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="relative px-6 py-3 bg-zinc-900 border-2 border-zinc-700 text-white text-sm font-black font-oswald tracking-widest uppercase hover:border-sport-red transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 flex items-center gap-2"
+                                    className="relative h-10 md:h-14 px-6 bg-zinc-900 border text-white text-sm font-black font-oswald tracking-widest uppercase transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 flex items-center gap-2"
+                                    style={{ borderColor: themeColors.secondary }}
                                 >
-                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                    <span className="w-2 h-2 bg-green-500"></span>
                                     {user?.nickname}
                                 </button>
 
@@ -248,7 +256,8 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className="absolute right-0 mt-2 w-56 bg-zinc-900 border-2 border-zinc-700 shadow-2xl overflow-hidden py-2"
+                                            className="absolute right-0 mt-2 w-56 bg-zinc-900 border-2 shadow-2xl overflow-hidden py-2"
+                                            style={{ borderColor: themeColors.secondary }}
                                         >
                                             <div className="px-4 py-3 border-b border-zinc-800">
                                                 <p className="text-white font-bold text-xs uppercase">{user?.nickname}</p>

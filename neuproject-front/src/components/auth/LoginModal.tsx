@@ -86,7 +86,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#0a0a0a] border-2 border-zinc-800 w-full max-w-md p-8 relative shadow-[0_0_40px_rgba(227,6,19,0.1)] rounded-lg overflow-hidden"
+                            className="bg-[#0a0a0a] border-2 border-zinc-800 w-full max-w-md p-8 relative shadow-[0_0_40px_rgba(227,6,19,0.1)] overflow-hidden"
                         >
                             {/* Decorative Accent Removed as requested */}
                             {/* <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-sport-red to-transparent" /> */}
@@ -113,7 +113,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
                             {/* Error Message */}
                             {error && (
-                                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-sm font-mono rounded-sm">
+                                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 text-red-500 text-sm font-mono">
                                     {error}
                                 </div>
                             )}
@@ -126,7 +126,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm rounded-sm placeholder:text-zinc-700"
+                                        className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm placeholder:text-zinc-700"
                                         placeholder="user@example.com"
                                         required
                                     />
@@ -137,7 +137,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                         type="password"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm rounded-sm placeholder:text-zinc-700"
+                                        className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm placeholder:text-zinc-700"
                                         placeholder="••••••••"
                                         required
                                     />
@@ -151,7 +151,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                                 type="text"
                                                 value={formData.nickname}
                                                 onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
-                                                className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm rounded-sm placeholder:text-zinc-700"
+                                                className="w-full bg-zinc-900/50 border border-zinc-700 text-white px-4 py-3 focus:outline-none focus:border-sport-red focus:bg-zinc-900 transition-all font-mono text-sm placeholder:text-zinc-700"
                                                 placeholder="Your Nickname"
                                                 required
                                             />
@@ -162,7 +162,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                                 {mode === 'login' && (
                                     <div className="flex items-center justify-between text-xs text-zinc-500 font-mono pt-2">
                                         <label className="flex items-center gap-2 cursor-pointer hover:text-zinc-300">
-                                            <input type="checkbox" className="rounded border-zinc-700 bg-zinc-900 text-sport-red focus:ring-0" />
+                                            <input type="checkbox" className="border-zinc-700 bg-zinc-900 text-sport-red focus:ring-0" />
                                             REMEMBER ME
                                         </label>
                                         <a href="#" className="hover:text-sport-red transition-colors">FORGOT PASSWORD?</a>

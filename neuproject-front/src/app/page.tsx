@@ -32,7 +32,7 @@ export default function Home() {
       <Ticker />
 
       {/* 1. Background Typography (THE 'REAL' FTT GRID) */}
-      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.25]">
+      <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden opacity-[0.35]">
         <div
           className="absolute w-[200vw] h-[200vh] top-[-50vh] left-[-50vw] flex flex-col justify-center"
         >
@@ -50,9 +50,9 @@ export default function Home() {
               {Array.from({ length: 12 }).map((_, j) => (
                 <h1
                   key={j}
-                  className="text-[14rem] font-black italic uppercase tracking-tighter leading-[0.85] px-12 text-transparent"
+                  className="text-[14rem] font-bold italic uppercase tracking-tighter leading-[0.85] px-12 text-transparent"
                   style={{
-                    WebkitTextStroke: '4px var(--color-primary)',
+                    WebkitTextStroke: '1.5px var(--color-primary)',
                     opacity: 1
                   }}
                 >
@@ -68,7 +68,7 @@ export default function Home() {
       <Header isPending={isPending} startTransition={startTransition} />
 
       {/* 3. Main Content Area */}
-      <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-20 md:pt-24 pb-20 md:pb-6 relative z-10 flex flex-col justify-stretch">
+      <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-28 md:pt-32 pb-20 md:pb-6 relative z-10 flex flex-col justify-stretch">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center bg-black">
             <LoadingSpinner size="xl" text="LOADING SPORTS DATA..." />

@@ -49,10 +49,13 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
 
             <div className="flex gap-2 h-11">
                 {/* 2. View Toggle */}
-                <div className="flex-none w-28 bg-[#18181b]/80 backdrop-blur-md border border-zinc-700 rounded-lg p-1 flex relative">
+                <div 
+                    className="flex-none w-28 bg-[#18181b]/80 backdrop-blur-md border p-1 flex relative"
+                    style={{ borderColor: themeColors.secondary }}
+                >
                     <div className="absolute inset-1">
                         <motion.div
-                            className="absolute top-0 bottom-0 rounded shadow-md"
+                            className="absolute top-0 bottom-0 shadow-md"
                             initial={false}
                             animate={{
                                 left: viewMode === 'calendar' ? '0%' : '50%',
@@ -78,7 +81,10 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                 </div>
 
                 {/* 3. Team Filter */}
-                <div className="flex-1 min-w-0 bg-[#18181b]/80 backdrop-blur-md border border-zinc-700 rounded-lg p-1 px-2 flex items-center gap-2 overflow-hidden shadow-xl">
+                <div 
+                    className="flex-1 min-w-0 bg-[#18181b]/80 backdrop-blur-md border p-1 px-2 flex items-center gap-2 overflow-hidden shadow-xl"
+                    style={{ borderColor: themeColors.secondary }}
+                >
                     <div className="flex flex-col shrink-0 border-r border-zinc-800 pr-2">
                         <button
                             onClick={() => setMainTeam(null)}
@@ -90,7 +96,7 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                             onClick={() => setIsReorderMode(!isReorderMode)}
                             className={`text-[7px] font-mono font-bold uppercase tracking-tighter flex items-center gap-1 ${isReorderMode ? 'text-white' : 'text-zinc-600'}`}
                         >
-                            <span className={`w-1 h-1 rounded-full ${isReorderMode ? 'animate-pulse' : ''}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : 'currentColor' }}></span>
+                            <span className={`w-1 h-1 ${isReorderMode ? 'animate-pulse' : ''}`} style={{ backgroundColor: isReorderMode ? themeColors.primary : 'currentColor' }}></span>
                             {isReorderMode ? 'EDIT' : 'SORT'}
                         </button>
                     </div>
@@ -105,7 +111,7 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                                 key={team.id}
                                 value={team}
                                 dragListener={isReorderMode}
-                                className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden transition-all duration-300 ${selectedTeamId === team.id ? 'scale-110 opacity-100' : (!selectedTeamId ? 'opacity-100' : 'opacity-40 brightness-50')}`}
+                                className={`w-8 h-8 shrink-0 flex items-center justify-center relative overflow-hidden transition-all duration-300 ${selectedTeamId === team.id ? 'scale-110 opacity-100' : (!selectedTeamId ? 'opacity-100' : 'opacity-40 brightness-50')}`}
                                 onClick={() => setMainTeam(selectedTeamId === team.id ? null : team)}
                             >
                                 {team.logoUrl ? (

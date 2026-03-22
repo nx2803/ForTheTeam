@@ -12,8 +12,8 @@ interface ThemeColors {
 }
 
 const DEFAULT_COLORS: ThemeColors = {
-    primary: '#ff4655', // sport-red
-    secondary: '#000000',
+    primary: '#e23645', // sport-red
+    secondary: '#71717a',
     primaryText: '#FFFFFF',
     secondaryText: '#FFFFFF',
 };
@@ -95,6 +95,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                 updateCSSVariables(DEFAULT_COLORS);
             }
         } else {
+            setThemeColors(DEFAULT_COLORS);
             updateCSSVariables(DEFAULT_COLORS);
         }
     }, []);

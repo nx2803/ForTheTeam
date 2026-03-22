@@ -27,7 +27,7 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#0a0a0a] border-2 border-zinc-800 w-full max-w-2xl p-8 relative shadow-[0_0_40px_rgba(255,255,255,0.05)] rounded-lg overflow-hidden max-h-[90vh] overflow-y-auto no-scrollbar"
+                            className="bg-[#0a0a0a] border-2 border-zinc-800 w-full max-w-2xl p-8 relative shadow-[0_0_40px_rgba(255,255,255,0.05)] overflow-hidden max-h-[90vh] overflow-y-auto no-scrollbar"
                         >
                             {/* Close Button */}
                             <button

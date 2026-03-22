@@ -10,8 +10,8 @@ interface ThemeColors {
 }
 
 const DEFAULT_COLORS: ThemeColors = {
-    primary: '#ff4655', // sport-red
-    secondary: '#000000',
+    primary: '#e23645', // sport-red
+    secondary: '#71717a',
     primaryText: '#FFFFFF',
     secondaryText: '#FFFFFF',
 };
@@ -85,7 +85,7 @@ export const useThemeStore = create<ThemeState>()(
         }),
         {
             name: 'mainTeam-storage',
-            // 테마 초기화를 위한 커스텀 로직이나 onRehydrate 사용 가능
+            version: 2, // 흰색 캐시를 지우고 다시 세련된 회색(#71717a)으로 복구합니다.
         }
     )
 );

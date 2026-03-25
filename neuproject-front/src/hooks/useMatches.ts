@@ -12,7 +12,7 @@ export function useMatches(
     const { user, isLoggedIn } = useAuth();
 
     return useSuspenseQuery({
-        queryKey: ['matches', year, month, isLoggedIn ? user?.uid : 'guest'],
+        queryKey: ['matches', year, month, isLoggedIn ? user?.uid : 'guest', myTeams.map(t => t.id).sort().join(',')],
         queryFn: () => matchService.getCalendarMatches({
             year,
             month,

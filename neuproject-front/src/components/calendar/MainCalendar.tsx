@@ -58,7 +58,7 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
             const m = date.getMonth() + 1;
             
             client.prefetchQuery({
-                queryKey: ['matches', y, m, isLoggedIn ? user?.uid : 'guest'],
+                queryKey: ['matches', y, m, isLoggedIn ? user?.uid : 'guest', myTeams.map(t => t.id).sort().join(',')],
                 queryFn: () => matchService.getCalendarMatches({
                     year: y,
                     month: m,
@@ -70,7 +70,7 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
 
         fetchMonth(1);  // Prefetch Next Month
         fetchMonth(-1); // Prefetch Prev Month
-    }, [currentDate, client, user?.uid, isLoggedIn]);
+    }, [currentDate, client, user?.uid, isLoggedIn, myTeams]);
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
     const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();

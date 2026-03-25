@@ -191,10 +191,6 @@ export default function TeamSelector({}: TeamSelectorProps) {
                 {/* --- Main Content (Ticker Style List) --- */}
                 <div className="flex-1 flex flex-col relative overflow-hidden">
 
-                    {/* Premium Sport-Tech Background Pattern */}
-                    <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
-                        style={{ backgroundImage: 'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)', backgroundSize: '15px 15px' }}>
-                    </div>
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 z-0 pointer-events-none"></div>
 
                     {isLoading ? (

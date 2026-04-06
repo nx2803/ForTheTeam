@@ -58,12 +58,7 @@ export default function Ticker({}: TickerProps) {
 
     const tickerContent = (
         <React.Fragment>
-            {isLoading ? (
-                <div className="flex items-center gap-3">
-                    <LoadingSpinner size="sm" text="" />
-                    <span className="text-zinc-400">LOADING LATEST RESULTS</span>
-                </div>
-            ) : recentMatches.length > 0 ? (
+            {recentMatches.length > 0 ? (
                 recentMatches.map((match, idx) => {
                     const homeName = match.home_team?.name || match.home_team_id;
                     const awayName = match.away_team?.name || match.away_team_id;
@@ -100,18 +95,25 @@ export default function Ticker({}: TickerProps) {
             }}
         >
             <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-10 pointer-events-none opacity-50"></div>
-            <motion.div
-                className="flex whitespace-nowrap font-oswald font-bold text-sm tracking-[0.2em] uppercase items-center"
-                animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, ease: "linear", duration: 70 }}
-                style={{ width: "fit-content" }}
-            >
-                {/* Duplicate content enough times to fill screen and loop smoothly */}
-                <div className="flex items-center px-4">{tickerContent}</div>
-                <div className="flex items-center px-4">{tickerContent}</div>
-                <div className="flex items-center px-4">{tickerContent}</div>
-                <div className="flex items-center px-4">{tickerContent}</div>
-            </motion.div>
+            {isLoading ? (
+                <div className="flex-1 flex items-center justify-center gap-3 font-oswald text-sm tracking-widest text-zinc-400">
+                    <LoadingSpinner size="sm" text="" />
+                    <span>LOADING LATEST RESULTS</span>
+                </div>
+            ) : (
+                <motion.div
+                    className="flex whitespace-nowrap font-oswald font-bold text-sm tracking-[0.2em] uppercase items-center"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{ repeat: Infinity, ease: "linear", duration: 70 }}
+                    style={{ width: "fit-content" }}
+                >
+                    {/* Duplicate content enough times to fill screen and loop smoothly */}
+                    <div className="flex items-center px-4">{tickerContent}</div>
+                    <div className="flex items-center px-4">{tickerContent}</div>
+                    <div className="flex items-center px-4">{tickerContent}</div>
+                    <div className="flex items-center px-4">{tickerContent}</div>
+                </motion.div>
+            )}
         </div>
     );
 }

@@ -10,7 +10,9 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useTeamStore } from '@/store/teamStore';
 import { useAuth } from '@/hooks/useAuth';
 
-interface TeamSelectorProps {}
+interface TeamSelectorProps {
+    startTransition?: (callback: () => void) => void;
+}
 
 interface Sport {
     id: string;
@@ -25,7 +27,7 @@ interface League {
     teams: Team[];
 }
 
-export default function TeamSelector({}: TeamSelectorProps) {
+export default function TeamSelector({ startTransition }: TeamSelectorProps) {
     const { myTeams, toggleTeam } = useTeamStore();
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
@@ -251,7 +253,15 @@ export default function TeamSelector({}: TeamSelectorProps) {
                                         return (
                                             <div
                                                 key={team.id}
-                                                onClick={() => toggleTeam(team, user?.uid)}
+                                                onClick={() => {
+                                                    if (startTransition) {
+                                                        startTransition(() => {
+                                                            toggleTeam(team, user?.uid);
+                                                        });
+                                                    } else {
+                                                        toggleTeam(team, user?.uid);
+                                                    }
+                                                }}
                                                 className={`
                                                     group relative h-12 flex items-center justify-between px-4 cursor-pointer transition-all duration-150 border-2 overflow-hidden
                                                     ${isSelected

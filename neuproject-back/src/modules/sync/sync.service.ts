@@ -190,6 +190,17 @@ export class SyncService {
     }
 
     /**
+     * LCK 단독 동기화 (외부 호출용 - 컨트롤러에서 사용)
+     */
+    async syncLckPublic() {
+        this.logger.log('[SYNC_LCK_MANUAL] Starting manual LCK synchronization...');
+        const count = await this.syncLck();
+        await this.clearSyncCache();
+        this.logger.log(`[SYNC_LCK_MANUAL] LCK sync complete: ${count} matches`);
+        return count;
+    }
+
+    /**
      * LCK 데이터 동기화
      */
     private async syncLck() {

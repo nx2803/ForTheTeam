@@ -81,7 +81,7 @@ export default function Home() {
       </div>
 
       {/* 4. Team Selector (Bottom Dock) */}
-      <TeamSelector />
+      <TeamSelector startTransition={startTransition} />
     </main>
   );
 }

@@ -10,15 +10,19 @@ import { useTeamStore } from '@/store/teamStore';
 import { useAuth } from '@/hooks/useAuth';
 import { 
     Trophy, 
-    Gamepad2, 
-    Flag, 
-    Zap, 
-    Target, 
-    Activity,
     Shield,
     ChevronRight,
     Search
 } from 'lucide-react';
+import { 
+    FaFutbol, 
+    FaBaseball, 
+    FaBasketball, 
+    FaFootball, 
+    FaHockeyPuck, 
+    FaGamepad, 
+    FaFlagCheckered 
+} from 'react-icons/fa6';
 
 interface TeamSelectorProps {
     startTransition?: (callback: () => void) => void;
@@ -130,17 +134,17 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
     // 스포츠 아이콘 매핑 컴포넌트
     function SportIcon({ name, size = 18 }: { name: string, size?: number }) {
         const icons: Record<string, any> = {
-            '축구': Trophy,
-            '야구': Target,
-            '농구': Activity,
-            '모토스포츠': Flag,
-            'e스포츠': Gamepad2,
-            '미식축구': Zap,
-            '아이스하키': Zap,
+            '축구': FaFutbol,
+            '야구': FaBaseball,
+            '농구': FaBasketball,
+            '모토스포츠': FaFlagCheckered,
+            'e스포츠': FaGamepad,
+            '미식축구': FaFootball,
+            '아이스하키': FaHockeyPuck,
             'Other': Trophy
         };
         const IconComponent = icons[name] || icons['Other'];
-        return <IconComponent size={size} strokeWidth={2.5} />;
+        return <IconComponent size={size} />;
     }
 
     // Derived State

@@ -55,9 +55,6 @@ export default function EmptyGuideOverlay() {
                             <ChevronDown size={40} strokeWidth={3} />
                         </motion.div>
                     </div>
-
-                    {/* Arrow Pointer */}
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-12 border-l-transparent border-r-12 border-r-transparent border-t-12 border-t-zinc-900"></div>
                 </motion.div>
             </motion.div>
         </AnimatePresence>

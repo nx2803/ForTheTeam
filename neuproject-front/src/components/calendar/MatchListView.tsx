@@ -15,6 +15,12 @@ export default function MatchListView({
 }: MatchListViewProps) {
     const { myTeams } = useTeamStore();
     const { themeColors } = useTheme();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-[#121212]">
             <div className="max-w-5xl mx-auto space-y-3">
@@ -26,7 +32,7 @@ export default function MatchListView({
                     displayedEvents
                         .filter(event => event.score === null)
                         .map((event, idx) => {
-                            const dDay = getDDay(event.date);
+                            const dDay = isMounted ? getDDay(event.date) : null;
                             // 지난 경기는 D-Day 표시 안 함 (null)
                             if (dDay === null) return null;
                             const isImminent = dDay === 'D-DAY' || dDay === 'D-1';

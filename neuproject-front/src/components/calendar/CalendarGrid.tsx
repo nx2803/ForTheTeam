@@ -155,6 +155,12 @@ export default function CalendarGrid({
     daysInMonth
 }: CalendarGridProps) {
     const { themeColors } = useTheme();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     React.useEffect(() => {
         const todayCell = document.getElementById('today-cell');
         const scrollContainer = document.getElementById('calendar-grid-container');
@@ -189,7 +195,7 @@ export default function CalendarGrid({
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1;
                     const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
+                    const isToday = isMounted && new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
                     const events = displayedEvents.filter((ev: any) => ev.date === dateKey);
 
                     return (

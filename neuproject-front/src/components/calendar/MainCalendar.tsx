@@ -13,6 +13,7 @@ import { getDDay } from '@/lib/dateUtils';
 
 import CalendarHeader from './CalendarHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import EmptyGuideOverlay from './EmptyGuideOverlay';
 
 // Dynamic imports for bundle optimization
 const CalendarGrid = dynamic(() => import('./CalendarGrid'), {
@@ -118,6 +119,9 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
                         getDDay={getDDay}
                     />
                 )}
+
+                {/* Guide Overlay for new users */}
+                {myTeams.length === 0 && <EmptyGuideOverlay />}
             </div>
         </div>
     );

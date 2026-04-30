@@ -87,6 +87,8 @@ export class SyncService {
         this.logger.log('[CRON_LIVE] Starting live scores synchronization (today only)...');
         try {
             await this.syncEspnToday();
+            await this.syncKboToday();
+            await this.syncLck();
         } catch (error) {
             this.logger.error(`[CRON_LIVE] Live scores sync failed: ${error.message}`);
         }
@@ -159,30 +161,11 @@ export class SyncService {
 
             let totalCount = 0;
             for (const month of months) {
-                this.logger.log(`[SYNC_KBO] Syncing KBO matches for ${year}-${month}...`);
-                try {
-                    const data = await this.kboService.getSchedule(year, month);
-                    for (const g of data.games) {
-                        await this.upsertMatch({
-                            external_api_id: `KBO_${g.gameId}`,
-                            league_id: league.id,
-                            league_code: 'KBO',
-                            home_team_name: g.homeTeam.name,
-                            away_team_name: g.awayTeam.name,
-                            match_at: new Date(`${g.dateTime}+09:00`),
-                            status: this.mapKboStatus(g.statusCode),
-                            home_score: g.homeTeam.score,
-                            away_score: g.awayTeam.score,
-                            venue: g.venue,
-                        });
-                        totalCount++;
-                    }
-                } catch (monthError) {
-                    this.logger.warn(`Failed to sync KBO for ${month}: ${monthError.message}`);
-                }
+                await this.syncKboByMonth(year, month, league.id);
             }
-            this.logger.log(`[SYNC_KBO] Total ${totalCount} KBO matches synced`);
-            return totalCount;
+            // 전체 동기화 시에는 카운트를 대략적으로 로그만 남김
+            this.logger.log(`[SYNC_KBO] Completed seasonal KBO sync`);
+            return 1; // 성공 표시
         } catch (error) {
             this.logger.error(`KBO Sync failed: ${error.message}`);
             return 0;
@@ -363,6 +346,50 @@ export class SyncService {
         return totalCount;
     }
 
+    /**
+     * KBO 오늘 경기만 동기화 (라이브 스코어 업데이트용)
+     */
+    private async syncKboToday() {
+        const now = new Date();
+        const year = now.getFullYear().toString();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+
+        try {
+            const league = await this.prisma.leagues.findFirst({ where: { name: { contains: 'KBO' } } });
+            if (!league) return;
+
+            this.logger.log(`[SYNC_KBO_LIVE] Syncing today's KBO matches (${year}-${month})...`);
+            await this.syncKboByMonth(year, month, league.id);
+        } catch (error) {
+            this.logger.error(`[SYNC_KBO_LIVE] KBO live sync failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * KBO 월별 동기화 헬퍼
+     */
+    private async syncKboByMonth(year: string, month: string, leagueId: string) {
+        try {
+            const data = await this.kboService.getSchedule(year, month);
+            for (const g of data.games) {
+                await this.upsertMatch({
+                    external_api_id: `KBO_${g.gameId}`,
+                    league_id: leagueId,
+                    league_code: 'KBO',
+                    home_team_name: g.homeTeam.name,
+                    away_team_name: g.awayTeam.name,
+                    match_at: new Date(`${g.dateTime}+09:00`),
+                    status: this.mapKboStatus(g.statusCode, g.isCancel),
+                    home_score: g.homeTeam.score,
+                    away_score: g.awayTeam.score,
+                    venue: g.venue,
+                });
+            }
+        } catch (error) {
+            this.logger.warn(`[SYNC_KBO_MONTH] Failed for ${year}-${month}: ${error.message}`);
+        }
+    }
+
     // --- 헬퍼 메서드들 ---
 
     private async upsertMatch(data: any, leagueTeamsCache?: any[]) {
@@ -432,9 +459,11 @@ export class SyncService {
             }
 
             if (!homeTeam || !awayTeam) {
-                this.logger.warn(`[SYNC_MATCH_FAIL] League: ${data.league_code}, Date: ${data.match_at.toISOString()}`);
-                if (!homeTeam) this.logger.warn(`  - Home Team NOT Found: "${data.home_team_name}"`);
-                if (!awayTeam) this.logger.warn(`  - Away Team NOT Found: "${data.away_team_name}"`);
+                const leagueInfo = data.league_code || 'Unknown League';
+                this.logger.warn(`[SYNC_MATCH_FAIL] [${leagueInfo}] Team NOT Found - Match at: ${data.match_at.toISOString()}`);
+                if (!homeTeam) this.logger.warn(`  - Home Team: "${data.home_team_name}" (ID: ${data.home_team_external_id || 'N/A'})`);
+                if (!awayTeam) this.logger.warn(`  - Away Team: "${data.away_team_name}" (ID: ${data.away_team_external_id || 'N/A'})`);
+                this.logger.debug(`  - External API ID: ${data.external_api_id}`);
             }
 
             return await matchesModel.create({
@@ -615,25 +644,29 @@ export class SyncService {
 
     private mapFootballStatus(status: string) {
         if (status === 'FINISHED') return 'finished';
-        if (status === 'IN_PLAY') return 'ongoing';
+        if (status === 'IN_PLAY' || status === 'LIVE' || status === 'PAUSED') return 'ongoing';
+        if (status === 'POSTPONED' || status === 'CANCELLED' || status === 'SUSPENDED') return 'cancelled';
         return 'scheduled';
     }
 
-    private mapKboStatus(status: string) {
+    private mapKboStatus(status: string, isCancel: boolean = false) {
+        if (isCancel || status === 'CANCEL' || status === 'POSTPONE') return 'cancelled';
         if (status === 'RESULT') return 'finished';
-        if (status === 'RUN') return 'ongoing';
+        if (status === 'RUN' || status === 'SUSPEND') return 'ongoing';
         return 'scheduled';
     }
 
     private mapPandaStatus(status: string) {
         if (status === 'finished') return 'finished';
         if (status === 'running') return 'ongoing';
+        if (status === 'canceled' || status === 'postponed') return 'cancelled';
         return 'scheduled';
     }
 
     private mapEspnStatus(status: string) {
         if (status === 'STATUS_FINAL') return 'finished';
-        if (status === 'STATUS_IN_PROGRESS') return 'ongoing';
+        if (status === 'STATUS_IN_PROGRESS' || status === 'STATUS_HALFTIME' || status === 'STATUS_SUSPENDED') return 'ongoing';
+        if (status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED') return 'cancelled';
         return 'scheduled';
     }
 }

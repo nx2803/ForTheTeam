@@ -13,11 +13,16 @@ export function useMatches(
 
     return useSuspenseQuery({
         queryKey: ['matches', year, month, isLoggedIn ? user?.uid : 'guest', myTeams.map(t => t.id).sort().join(',')],
-        queryFn: () => matchService.getCalendarMatches({
-            year,
-            month,
-            memberUid: isLoggedIn ? user?.uid : undefined,
-        }),
+        queryFn: async () => {
+            if (myTeams.length === 0 && !isLoggedIn) {
+                return [];
+            }
+            return matchService.getCalendarMatches({
+                year,
+                month,
+                memberUid: isLoggedIn ? user?.uid : undefined,
+            });
+        },
         staleTime: 1000 * 60 * 5, // 5분 캐시 유지
         gcTime: 1000 * 60 * 10,   // 10분 후 가비지 컬렉션
         select: (rawData) => {

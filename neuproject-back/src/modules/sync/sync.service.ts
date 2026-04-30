@@ -169,7 +169,7 @@ export class SyncService {
                             league_code: 'KBO',
                             home_team_name: g.homeTeam.name,
                             away_team_name: g.awayTeam.name,
-                            match_at: new Date(g.dateTime),
+                            match_at: new Date(`${g.dateTime}+09:00`),
                             status: this.mapKboStatus(g.statusCode),
                             home_score: g.homeTeam.score,
                             away_score: g.awayTeam.score,

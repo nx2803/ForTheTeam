@@ -6,9 +6,19 @@ import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 import { getAllTeams, TeamResponse } from '@/lib/teamsApi';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-
 import { useTeamStore } from '@/store/teamStore';
 import { useAuth } from '@/hooks/useAuth';
+import { 
+    Trophy, 
+    Gamepad2, 
+    Flag, 
+    Zap, 
+    Target, 
+    Activity,
+    Shield,
+    ChevronRight,
+    Search
+} from 'lucide-react';
 
 interface TeamSelectorProps {
     startTransition?: (callback: () => void) => void;
@@ -67,7 +77,7 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
                         sportMap.set(sportId, {
                             id: sportId,
                             name: sportName,
-                            icon: getSportIcon(sportName),
+                            icon: sportName, // Store name for mapping
                             leagues: [],
                         });
                     }
@@ -89,7 +99,7 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
                     league.teams.push({
                         id: team.id,
                         name: team.name,
-                        logo: '🏆', // 기본 이모지
+                        logo: 'Shield', // Default placeholder
                         logoUrl: team.logo_url, // URL 따로 저장
                         mainColor: team.primary_color || '#FFFFFF',
                         subColor: team.secondary_color || '#000000',
@@ -117,18 +127,20 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
         fetchTeams();
     }, []);
 
-    // 스포츠 아이콘 매핑
-    function getSportIcon(sportName: string): string {
-        const iconMap: Record<string, string> = {
-            '축구': '⚽',
-            '야구': '⚾',
-            '농구': '🏀',
-            '모토스포츠': '🏁',
-            'e스포츠': '🎮',
-            '미식축구': '🏈',
-            '아이스하키': '🏒',
+    // 스포츠 아이콘 매핑 컴포넌트
+    function SportIcon({ name, size = 18 }: { name: string, size?: number }) {
+        const icons: Record<string, any> = {
+            '축구': Trophy,
+            '야구': Target,
+            '농구': Activity,
+            '모토스포츠': Flag,
+            'e스포츠': Gamepad2,
+            '미식축구': Zap,
+            '아이스하키': Zap,
+            'Other': Trophy
         };
-        return iconMap[sportName.toLowerCase()] || iconMap[sportName] || '🏆';
+        const IconComponent = icons[name] || icons['Other'];
+        return <IconComponent size={size} strokeWidth={2.5} />;
     }
 
     // Derived State
@@ -221,11 +233,11 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
                                         <button
                                             key={sport.id}
                                             onClick={() => { setSelectedSportId(sport.id); setSelectedLeagueId(sport.leagues[0]?.id || ''); }}
-                                            className={`px-3 py-1 font-oswald font-semibold uppercase tracking-wider text-sm transition-all ${selectedSportId === sport.id
+                                            className={`px-3 py-1 font-oswald font-semibold uppercase tracking-wider text-sm transition-all flex items-center gap-2 ${selectedSportId === sport.id
                                                 ? 'bg-white text-black'
                                                 : 'text-zinc-500 hover:text-white'}`}
                                         >
-                                            <span className="text-lg md:text-sm">{sport.icon}</span>
+                                            <SportIcon name={sport.name} size={16} />
                                             <span className="hidden md:inline">{sport.name}</span>
                                         </button>
                                     ))}
@@ -282,7 +294,9 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
                                                             />
                                                         </div>
                                                     ) : (
-                                                        <span className="text-xl w-6 text-center">{team.logo}</span>
+                                                        <div className="w-6 h-6 flex items-center justify-center text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                                            <Shield size={18} strokeWidth={2.5} />
+                                                        </div>
                                                     )}
                                                     <span className="font-oswald font-bold uppercase tracking-wide text-sm pt-0.5">
                                                         {team.name}

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
+import { ChevronDown, X } from 'lucide-react';
 
 export default function EmptyGuideOverlay() {
     const { themeColors } = useTheme();
@@ -17,13 +18,13 @@ export default function EmptyGuideOverlay() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setIsVisible(false)}
-                className="absolute inset-0 z-40 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-end pb-24 md:pb-32 cursor-pointer"
+                className="absolute inset-0 z-40 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-end pb-12 md:pb-16 cursor-pointer"
             >
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-zinc-900 border border-zinc-700 shadow-2xl p-6 rounded-none relative max-w-sm w-[90%] cursor-default"
+                    className="bg-zinc-900 border border-zinc-700 shadow-2xl p-6 pt-8 rounded-none relative max-w-sm w-[90%] cursor-default"
                     style={{ borderTop: `4px solid ${themeColors.primary}` }}
                 >
                     {/* Close Button */}
@@ -31,21 +32,10 @@ export default function EmptyGuideOverlay() {
                         onClick={() => setIsVisible(false)}
                         className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
                     >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <X size={20} strokeWidth={2.5} />
                     </button>
                     
                     <div className="flex flex-col items-center text-center space-y-4">
-                        <motion.div 
-                            animate={{ y: [0, -8, 0] }}
-                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                            className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center border border-white/10"
-                        >
-                            <span className="text-3xl">👇</span>
-                        </motion.div>
-                        
                         <div className="space-y-1">
                             <h3 className="font-oswald font-black text-2xl italic tracking-tighter text-white leading-tight uppercase">
                                 Design Your Schedule
@@ -55,10 +45,19 @@ export default function EmptyGuideOverlay() {
                                 선택한 팀의 일정만 캘린더에 나타납니다.
                             </p>
                         </div>
+
+                        <motion.div 
+                            animate={{ y: [0, 8, 0], opacity: [0.5, 1, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                            className="flex items-center justify-center pt-2"
+                            style={{ color: themeColors.primary }}
+                        >
+                            <ChevronDown size={40} strokeWidth={3} />
+                        </motion.div>
                     </div>
 
                     {/* Arrow Pointer */}
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-zinc-900"></div>
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-12 border-l-transparent border-r-12 border-r-transparent border-t-12 border-t-zinc-900"></div>
                 </motion.div>
             </motion.div>
         </AnimatePresence>

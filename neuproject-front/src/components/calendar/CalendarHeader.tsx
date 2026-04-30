@@ -8,6 +8,13 @@ import { useCalendarStore } from '@/store/calendarStore';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { 
+    ChevronLeft, 
+    ChevronRight, 
+    LayoutGrid, 
+    List, 
+    Shield
+} from 'lucide-react';
 
 interface CalendarHeaderProps {
     isPending?: boolean;
@@ -32,7 +39,7 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                     disabled={isPending}
                     className="text-zinc-400 hover:text-white p-2 disabled:opacity-30"
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                    <ChevronLeft size={24} strokeWidth={3} />
                 </button>
                 <h2 className="text-3xl font-black font-oswald italic uppercase text-white tracking-tighter drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] leading-none text-center">
                     {currentDate.toLocaleDateString('en-US', { month: 'long' })}
@@ -43,7 +50,7 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                     disabled={isPending}
                     className="text-zinc-400 hover:text-white p-2 disabled:opacity-30"
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                    <ChevronRight size={24} strokeWidth={3} />
                 </button>
             </div>
 
@@ -69,14 +76,14 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                         onClick={() => setViewMode('calendar')}
                         className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500'}`}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        <LayoutGrid size={20} strokeWidth={2.5} />
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
                         className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500'}`}
                         style={{ color: viewMode === 'list' ? themeColors.primaryText : undefined }}
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <List size={20} strokeWidth={2.5} />
                     </button>
                 </div>
 
@@ -117,7 +124,9 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                                 {team.logoUrl ? (
                                     <img src={team.logoUrl} alt="" className="w-full h-full object-contain p-0.5 pointer-events-none" />
                                 ) : (
-                                    <span className="text-[10px] font-bold pointer-events-none">{team.logo}</span>
+                                    <div className="text-zinc-500 pointer-events-none">
+                                        <Shield size={18} strokeWidth={2.5} />
+                                    </div>
                                 )}
                             </Reorder.Item>
                         ))}

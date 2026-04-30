@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Team } from '@/types/team';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
+import { Flag, Shield } from 'lucide-react';
 
 interface MatchListViewProps {
     displayedEvents: any[];
@@ -86,7 +87,7 @@ export default function MatchListView({
                                                     </div>
                                                     <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">LOCAL TIME</div>
                                                 </div>
-                                                <span className="text-3xl md:text-4xl">🏎️</span>
+                                                <Flag size={32} className="text-white" strokeWidth={2.5} />
                                             </div>
                                         </div>
                                     ) : (
@@ -99,13 +100,13 @@ export default function MatchListView({
                                                     <span className="text-[10px] font-bold text-zinc-500 uppercase">HOME</span>
                                                 </div>
                                                 {/* Logo Container with Fallback */}
-                                                <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                                                <div className="w-12 h-12 flex items-center justify-center shrink-0 text-zinc-600">
                                                     {(() => {
                                                         const homeTeam = event.homeTeam || myTeams.find((t: Team) => t.id === event.teamId);
                                                         if (homeTeam?.logoUrl) {
                                                             return <img src={homeTeam.logoUrl} alt={event.homeTeamName} className="w-full h-full object-contain" />;
                                                         }
-                                                        return <span className="text-4xl">{homeTeam?.logo || '🛡️'}</span>;
+                                                        return <Shield size={40} strokeWidth={1.5} />;
                                                     })()}
                                                 </div>
                                             </div>
@@ -117,13 +118,13 @@ export default function MatchListView({
                                             </div>
                                             <div className="flex items-center gap-3 justify-start text-left overflow-hidden min-w-0">
                                                 {/* Logo Container with Fallback */}
-                                                <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                                                <div className="w-12 h-12 flex items-center justify-center shrink-0 text-zinc-600">
                                                     {(() => {
                                                         const awayTeam = event.awayTeam || myTeams.find((t: Team) => t.id === event.awayTeamId);
                                                         if (awayTeam?.logoUrl) {
                                                             return <img src={awayTeam.logoUrl} alt={event.awayTeamName} className="w-full h-full object-contain" />;
                                                         }
-                                                        return <span className="text-4xl">{awayTeam?.logo || '🛡️'}</span>;
+                                                        return <Shield size={40} strokeWidth={1.5} />;
                                                     })()}
                                                 </div>
                                                 <div className="hidden md:flex flex-col items-start min-w-0 flex-1">

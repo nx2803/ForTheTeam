@@ -9,6 +9,15 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCalendarStore } from '@/store/calendarStore';
 import { useTeamStore } from '@/store/teamStore';
 import { Team } from '@/types/team';
+import { 
+    ChevronLeft, 
+    ChevronRight, 
+    LayoutGrid, 
+    List, 
+    Info, 
+    LogOut,
+    Shield
+} from 'lucide-react';
 
 interface HeaderProps { 
     isPending?: boolean;
@@ -86,14 +95,14 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                             onClick={() => setViewMode('calendar')}
                             className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500 hover:text-white'}`}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                            <LayoutGrid size={20} strokeWidth={2.5} />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
                             className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500 hover:text-white'}`}
                             style={{ color: viewMode === 'list' ? themeColors.primaryText : undefined }}
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            <List size={20} strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
@@ -105,7 +114,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                         disabled={isPending}
                         className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                        <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                        <ChevronLeft size={32} strokeWidth={3} />
                     </button>
 
                     <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-oswald italic uppercase text-white tracking-tighter shadow-black drop-shadow-xl leading-none text-center whitespace-nowrap">
@@ -118,7 +127,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                         disabled={isPending}
                         className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-white/10 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                        <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                        <ChevronRight size={32} strokeWidth={3} />
                     </button>
                 </div>
 
@@ -166,7 +175,9 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                         {team.logoUrl ? (
                                             <img src={team.logoUrl} alt="" className="w-full h-full object-contain p-1 pointer-events-none" />
                                         ) : (
-                                            <span className="text-xs font-bold pointer-events-none">{team.logo}</span>
+                                            <div className="text-zinc-500 pointer-events-none">
+                                                <Shield size={20} strokeWidth={2.5} />
+                                            </div>
                                         )}
                                     </Reorder.Item>
                                 ))}
@@ -270,14 +281,14 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                                 }}
                                                 className="w-full px-4 py-3 text-left text-zinc-400 hover:bg-white/5 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-3 border-b border-zinc-800"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <Info size={16} strokeWidth={2.5} />
                                                 About
                                             </button>
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full px-4 py-3 text-left text-zinc-400 hover:bg-red-900/20 hover:text-sport-red transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-3"
                                             >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                                <LogOut size={16} strokeWidth={2.5} />
                                                 Logout
                                             </button>
                                         </motion.div>

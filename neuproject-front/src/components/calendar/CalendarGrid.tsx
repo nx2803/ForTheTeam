@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
+import { Flag, Shield } from 'lucide-react';
 
 interface CalendarGridProps {
     currentDate: Date;
@@ -93,7 +94,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                     </span>
                                     <div className="flex items-center gap-2 shrink-0 ml-1.5">
                                         <span className="font-mono text-xs md:text-sm text-zinc-400 font-bold">{ev.time}</span>
-                                        <span className="text-sm">🏎️</span>
+                                        <Flag size={14} className="text-white" strokeWidth={2.5} />
                                     </div>
                                 </div>
                             ) : (
@@ -107,7 +108,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                             {ev.homeTeam?.logoUrl ? (
                                                 <img src={ev.homeTeam.logoUrl} alt="" className="w-full h-full object-contain" />
                                             ) : (
-                                                <span className="text-xs md:text-sm">{ev.homeTeam?.logo || '🛡️'}</span>
+                                                <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
                                         </div>
                                     </div>
@@ -131,7 +132,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                             {ev.awayTeam?.logoUrl ? (
                                                 <img src={ev.awayTeam.logoUrl} alt="" className="w-full h-full object-contain" />
                                             ) : (
-                                                <span className="text-xs md:text-sm">{ev.awayTeam?.logo || '🛡️'}</span>
+                                                <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
                                         </div>
                                         <span className="font-oswald font-bold text-zinc-300 group-hover/ev:text-white text-xs md:text-sm uppercase truncate tracking-tighter">

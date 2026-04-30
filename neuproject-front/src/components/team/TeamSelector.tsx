@@ -186,7 +186,7 @@ export default function TeamSelector({ startTransition }: TeamSelectorProps) {
                         onClick={() => setIsOpen(!isOpen)}
                     >
                         {/* Ticker-style Decorative Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-0 pointer-events-none opacity-50"></div>
+                        <div className="absolute inset-0 bg-linear-to-r from-black/40 via-transparent to-black/40 z-0 pointer-events-none opacity-50"></div>
 
                         <span
                             className="relative z-10 font-oswald font-bold uppercase tracking-[0.2em] text-sm md:text-base"

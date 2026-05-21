@@ -69,6 +69,30 @@ export class EspnService {
     }
 
     /**
+     * 특정 스포츠의 순위표 조회
+     * @param sportCode NFL, NHL, NBA, MLB
+     */
+    async getStandings(sportCode: SportCode) {
+        const config = SPORTS[sportCode];
+        try {
+            this.logger.log(`Fetching ${config.name} standings...`);
+
+            const response = await firstValueFrom(
+                this.httpService.get(
+                    `https://site.api.espn.com/apis/v2/sports/${config.sport}/${config.league}/standings`
+                ),
+            );
+
+            return response.data;
+        } catch (error: any) {
+            this.logger.error(
+                `Failed to fetch ${config.name} standings: ${error.message}`,
+            );
+            throw error;
+        }
+    }
+
+    /**
      * 시즌 전체 일정 조회 (캘린더 기반 단계적 조회)
      * @param sportCode NFL, NHL, NBA, MLB
      * @param season 시즌 연도 (예: 2025)

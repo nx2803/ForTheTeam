@@ -6,6 +6,8 @@ export type Team = {
     mainColor: string;
     subColor: string;
     leagueId: string;
+    leagueName?: string;
+    leagueLogoUrl?: string | null;
     sport?: string;
     abbreviation?: string;
 };

@@ -63,6 +63,34 @@ export class FootballService {
     }
 
     /**
+     * 특정 리그의 순위표 가져오기
+     */
+    async getStandings(leagueCode: LeagueCode) {
+        try {
+            const league = LEAGUE_CODES[leagueCode];
+            this.logger.log(`Fetching ${league.name} standings...`);
+
+            const response = await firstValueFrom(
+                this.httpService.get(
+                    `${this.apiUrl}/competitions/${leagueCode}/standings`,
+                    {
+                        headers: {
+                            'X-Auth-Token': this.apiKey,
+                        },
+                    },
+                ),
+            );
+
+            return response.data;
+        } catch (error: any) {
+            this.logger.error(
+                `Failed to fetch ${leagueCode} standings: ${error.message}`,
+            );
+            throw error;
+        }
+    }
+
+    /**
      * 4대 리그 전체 경기 일정 한번에 가져오기
      */
     async getAllLeagueMatches() {

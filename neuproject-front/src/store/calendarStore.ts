@@ -3,11 +3,11 @@ import { persist } from 'zustand/middleware';
 
 interface CalendarState {
     currentDate: string; // Date 객체는 persist 시 직렬화 문제가 생길 수 있어 문자열로 저장
-    viewMode: 'calendar' | 'list';
+    viewMode: 'calendar' | 'list' | 'standings';
     
     // Actions
     setCurrentDate: (date: Date) => void;
-    setViewMode: (mode: 'calendar' | 'list') => void;
+    setViewMode: (mode: 'calendar' | 'list' | 'standings') => void;
     nextMonth: () => void;
     prevMonth: () => void;
 }

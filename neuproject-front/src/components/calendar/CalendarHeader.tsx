@@ -8,11 +8,10 @@ import { useCalendarStore } from '@/store/calendarStore';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { TbCalendarMonth, TbClock, TbTrophy } from 'react-icons/tb';
 import { 
     ChevronLeft, 
     ChevronRight, 
-    LayoutGrid, 
-    List, 
     Shield
 } from 'lucide-react';
 
@@ -57,7 +56,7 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
             <div className="flex gap-2 h-11">
                 {/* 2. View Toggle */}
                 <div 
-                    className="flex-none w-28 bg-[#18181b]/80 backdrop-blur-md border p-1 flex relative"
+                    className="flex-none w-52 bg-[#18181b]/80 backdrop-blur-md border p-1 flex relative"
                     style={{ borderColor: themeColors.secondary }}
                 >
                     <div className="absolute inset-1">
@@ -65,25 +64,36 @@ export default function CalendarHeader({ isPending, startTransition }: CalendarH
                             className="absolute top-0 bottom-0 shadow-md"
                             initial={false}
                             animate={{
-                                left: viewMode === 'calendar' ? '0%' : '50%',
-                                width: '50%',
-                                backgroundColor: viewMode === 'list' ? themeColors.primary : '#FFFFFF'
+                                left: viewMode === 'calendar' ? '0%' : (viewMode === 'list' ? '33.333%' : '66.666%'),
+                                width: '33.333%',
+                                backgroundColor: themeColors.primary
                             }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         />
                     </div>
                     <button
                         onClick={() => setViewMode('calendar')}
-                        className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500'}`}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-1 p-1 transition-colors duration-200 ${viewMode === 'calendar' ? 'font-bold' : 'text-zinc-500'}`}
+                        style={{ color: viewMode === 'calendar' ? themeColors.primaryText : undefined }}
                     >
-                        <LayoutGrid size={20} strokeWidth={2.5} />
+                        <TbCalendarMonth size={14} strokeWidth={2.5} />
+                        <span className="text-[9px] font-bold font-oswald tracking-tight uppercase italic">Cal</span>
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
-                        className={`relative z-10 flex-1 flex items-center justify-center transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500'}`}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-1 p-1 transition-colors duration-200 ${viewMode === 'list' ? 'font-bold' : 'text-zinc-500'}`}
                         style={{ color: viewMode === 'list' ? themeColors.primaryText : undefined }}
                     >
-                        <List size={20} strokeWidth={2.5} />
+                        <TbClock size={14} strokeWidth={2.5} />
+                        <span className="text-[9px] font-bold font-oswald tracking-tight uppercase italic">D-Day</span>
+                    </button>
+                    <button
+                        onClick={() => setViewMode('standings')}
+                        className={`relative z-10 flex-1 flex items-center justify-center gap-1 p-1 transition-colors duration-200 ${viewMode === 'standings' ? 'font-bold' : 'text-zinc-500'}`}
+                        style={{ color: viewMode === 'standings' ? themeColors.primaryText : undefined }}
+                    >
+                        <TbTrophy size={14} strokeWidth={2.5} />
+                        <span className="text-[9px] font-bold font-oswald tracking-tight uppercase italic">Rank</span>
                     </button>
                 </div>
 

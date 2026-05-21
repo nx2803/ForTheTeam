@@ -37,6 +37,8 @@ export const useTeamStore = create<TeamState>()(
                         mainColor: t.primary_color || '#ff4655',
                         subColor: t.secondary_color || '#000000',
                         leagueId: t.league_id,
+                        leagueName: (t.leagues as any)?.name || undefined,
+                        leagueLogoUrl: (t.leagues as any)?.logo_url || undefined,
                         sport: (t.leagues as any)?.category || 'Sports'
                     }));
 

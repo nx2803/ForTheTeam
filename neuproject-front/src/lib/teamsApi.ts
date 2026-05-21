@@ -12,6 +12,7 @@ export interface TeamResponse {
         id: string;
         name: string;
         category: string;
+        logo_url?: string | null;
     };
 }
 

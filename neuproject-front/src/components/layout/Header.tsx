@@ -9,11 +9,10 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCalendarStore } from '@/store/calendarStore';
 import { useTeamStore } from '@/store/teamStore';
 import { Team } from '@/types/team';
+import { TbCalendarMonth, TbClock, TbTrophy } from 'react-icons/tb';
 import { 
     ChevronLeft, 
     ChevronRight, 
-    LayoutGrid, 
-    List, 
     Info, 
     LogOut,
     Shield
@@ -75,7 +74,7 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
 
                     {/* Original View Toggle Switch - Desktop Only */}
                     <div 
-                        className="hidden xl:flex bg-[#18181b]/80 backdrop-blur-md border p-1 relative shrink-0 w-25 md:w-30"
+                        className="hidden xl:flex bg-[#18181b]/80 backdrop-blur-md border p-1 relative shrink-0 w-64 md:w-72"
                         style={{ borderColor: themeColors.secondary }}
                     >
                         <div className="absolute inset-1">
@@ -83,9 +82,9 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
                                 className="absolute top-0 bottom-0 shadow-md"
                                 initial={false}
                                 animate={{
-                                    left: viewMode === 'calendar' ? '0%' : '50%',
-                                    width: '50%',
-                                    backgroundColor: viewMode === 'list' ? themeColors.primary : '#FFFFFF'
+                                    left: viewMode === 'calendar' ? '0%' : (viewMode === 'list' ? '33.333%' : '66.666%'),
+                                    width: '33.333%',
+                                    backgroundColor: themeColors.primary
                                 }}
                                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             />
@@ -93,16 +92,27 @@ export default function Header({ isPending, startTransition }: HeaderProps) {
 
                         <button
                             onClick={() => setViewMode('calendar')}
-                            className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'calendar' ? 'text-black' : 'text-zinc-500 hover:text-white'}`}
+                            className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 p-2 transition-colors duration-200 ${viewMode === 'calendar' ? '' : 'text-zinc-500 hover:text-white'}`}
+                            style={{ color: viewMode === 'calendar' ? themeColors.primaryText : undefined }}
                         >
-                            <LayoutGrid size={20} strokeWidth={2.5} />
+                            <TbCalendarMonth size={16} strokeWidth={2.5} />
+                            <span className="text-[10px] font-bold font-oswald tracking-wider uppercase italic">Calendar</span>
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`relative z-10 flex-1 flex items-center justify-center p-2 transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500 hover:text-white'}`}
+                            className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 p-2 transition-colors duration-200 ${viewMode === 'list' ? '' : 'text-zinc-500 hover:text-white'}`}
                             style={{ color: viewMode === 'list' ? themeColors.primaryText : undefined }}
                         >
-                            <List size={20} strokeWidth={2.5} />
+                            <TbClock size={16} strokeWidth={2.5} />
+                            <span className="text-[10px] font-bold font-oswald tracking-wider uppercase italic">D-Day</span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('standings')}
+                            className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 p-2 transition-colors duration-200 ${viewMode === 'standings' ? '' : 'text-zinc-500 hover:text-white'}`}
+                            style={{ color: viewMode === 'standings' ? themeColors.primaryText : undefined }}
+                        >
+                            <TbTrophy size={16} strokeWidth={2.5} />
+                            <span className="text-[10px] font-bold font-oswald tracking-wider uppercase italic">Rank</span>
                         </button>
                     </div>
                 </div>

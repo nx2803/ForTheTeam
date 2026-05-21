@@ -22,6 +22,9 @@ const CalendarGrid = dynamic(() => import('./CalendarGrid'), {
 const MatchListView = dynamic(() => import('./MatchListView'), {
     loading: () => <LoadingSpinner size="lg" text="LIST LOADING..." />
 });
+const StandingsView = dynamic(() => import('./StandingsView'), {
+    loading: () => <LoadingSpinner size="lg" text="STANDINGS LOADING..." />
+});
 
 
 import { useTeamStore } from '@/store/teamStore';
@@ -113,11 +116,13 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
                         startDay={startDay}
                         daysInMonth={daysInMonth}
                     />
-                ) : (
+                ) : viewMode === 'list' ? (
                     <MatchListView
                         displayedEvents={displayedEvents}
                         getDDay={getDDay}
                     />
+                ) : (
+                    <StandingsView />
                 )}
 
                 {/* Guide Overlay for new users */}

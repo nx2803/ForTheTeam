@@ -12,6 +12,7 @@ import { EspnModule } from './modules/espn/espn.module';
 import { KboModule } from './modules/kbo/kbo.module';
 import { SyncModule } from './modules/sync/sync.module';
 import { MatchesModule } from './modules/matches/matches.module';
+import { StandingsModule } from './modules/standings/standings.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
@@ -56,6 +57,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     KboModule,
     SyncModule,
     MatchesModule,
+    StandingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -311,16 +311,46 @@ export class StandingsService {
    */
   private async aggregateLckStandings(leagueId: string): Promise<StandingItem[]> {
     try {
-      const now = new Date();
-      const currentYear = now.getFullYear();
+      // LCK 리그의 가장 최근 finished 경기를 찾아 그 날짜를 기준으로 스플릿 결정
+      const lastMatch = await this.prisma.matches.findFirst({
+        where: {
+          league_id: leagueId,
+          status: 'finished',
+        },
+        orderBy: {
+          match_at: 'desc',
+        },
+      });
+
+      const referenceDate = lastMatch ? new Date(lastMatch.match_at) : new Date();
+      const referenceYear = referenceDate.getFullYear();
+      const referenceMonth = referenceDate.getMonth() + 1; // 1-indexed
+
+      let startDate: Date;
+      let endDate: Date;
+
+      if (referenceMonth >= 4 && referenceMonth <= 10) {
+        // Summer Split (4월 ~ 10월)
+        startDate = new Date(`${referenceYear}-04-01T00:00:00Z`);
+        endDate = new Date(`${referenceYear}-10-31T23:59:59Z`);
+      } else {
+        // Spring Split (11월 ~ 다음해 3월)
+        if (referenceMonth >= 11) {
+          startDate = new Date(`${referenceYear}-11-01T00:00:00Z`);
+          endDate = new Date(`${referenceYear + 1}-03-31T23:59:59Z`);
+        } else {
+          startDate = new Date(`${referenceYear - 1}-11-01T00:00:00Z`);
+          endDate = new Date(`${referenceYear}-03-31T23:59:59Z`);
+        }
+      }
 
       const matches = await this.prisma.matches.findMany({
         where: {
           league_id: leagueId,
           status: 'finished',
           match_at: {
-            gte: new Date(`${currentYear}-01-01T00:00:00Z`),
-            lte: new Date(`${currentYear}-12-31T23:59:59Z`),
+            gte: startDate,
+            lte: endDate,
           },
         },
       });
@@ -385,10 +415,18 @@ export class StandingsService {
         };
       });
 
-      // LCK 순위 결정 방식: 매치 승리수 -> 세트 득실차(points) -> 승자승(생략) 순
+      // LCK 순위 결정 방식: 매치 승수 -> 매치 득실차(Match Won - Match Lost) -> 세트 득실차(points) 순
       return items
         .sort((a, b) => {
+          // 1. 매치 승수 비교
           if (b.won !== a.won) return b.won - a.won;
+          
+          // 2. 매치 득실차 비교 (lost가 적은 팀이 득실차가 더 큼)
+          const aMatchDiff = a.won - a.lost;
+          const bMatchDiff = b.won - b.lost;
+          if (bMatchDiff !== aMatchDiff) return bMatchDiff - aMatchDiff;
+          
+          // 3. 세트 득실차 비교
           return b.points - a.points;
         })
         .map((item, index) => ({ ...item, rank: index + 1 }));

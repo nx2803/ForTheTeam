@@ -14,6 +14,8 @@ model follows {
   created_at DateTime? @default(now()) @db.Timestamp(6)
   members    members?  @relation(fields: [member_uid], references: [uid], onDelete: Cascade, onUpdate: NoAction)
   teams      teams     @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([member_uid, team_id])
 }
 
 model leagues {

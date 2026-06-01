@@ -50,9 +50,9 @@ export default function StandingsView() {
     const isKbo = leagueNameUpper.includes('KBO');
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#121212] p-4 md:p-6 h-full">
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#121212] p-2 md:p-6 h-full">
             {/* 1. Leagues Tab Bar */}
-            <div className="flex gap-2 pb-3 mb-4 border-b border-zinc-800/80 overflow-x-auto no-scrollbar shrink-0">
+            <div className="flex gap-1.5 pb-2 mb-3 border-b border-zinc-800/80 overflow-x-auto no-scrollbar shrink-0">
                 {ALL_LEAGUES.map(league => {
                     const isActive = league.id === selectedLeagueId;
                     const isFollowed = followedLeagueIds.has(league.id);
@@ -60,7 +60,7 @@ export default function StandingsView() {
                         <button
                             key={league.id}
                             onClick={() => setSelectedLeagueId(league.id)}
-                            className="px-5 py-3 font-oswald text-sm font-bold uppercase tracking-wider italic transition-all duration-300 border bg-zinc-900/50 hover:bg-zinc-800 shrink-0 flex items-center gap-3 relative overflow-hidden"
+                            className="px-3 py-1.5 md:px-5 md:py-3 font-oswald text-xs md:text-sm font-bold uppercase tracking-wider italic transition-all duration-300 border bg-zinc-900/50 hover:bg-zinc-800 shrink-0 flex items-center gap-2 md:gap-3 relative overflow-hidden"
                             style={{
                                 borderColor: isActive ? themeColors.primary : '#27272a',
                                 color: isActive ? '#FFFFFF' : '#71717a',
@@ -70,7 +70,7 @@ export default function StandingsView() {
                             {isActive && (
                                 <motion.div 
                                     layoutId="activeLeagueIndicator"
-                                    className="absolute bottom-0.5 left-3 right-3 h-[3px] rounded-full"
+                                    className="absolute bottom-0.5 left-2 right-2 md:left-3 md:right-3 h-[2px] md:h-[3px] rounded-full"
                                     style={{ backgroundColor: themeColors.primary }}
                                     transition={{ type: 'spring', stiffness: 280, damping: 26 }}
                                 />
@@ -79,17 +79,17 @@ export default function StandingsView() {
                             {/* Followed Indicator dot */}
                             {isFollowed && (
                                 <span 
-                                    className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
+                                    className="absolute top-1 right-1 w-1 h-1 md:top-1.5 md:right-1.5 md:w-1.5 md:h-1.5 rounded-full"
                                     style={{ backgroundColor: themeColors.primary }}
                                     title="팔로우 중인 팀이 있는 리그"
                                 />
                             )}
                             
-                            <div className={`w-6 h-6 p-0.5 rounded flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-zinc-800' : 'bg-zinc-900/80 border border-zinc-800'}`}>
+                            <div className={`w-4 h-4 md:w-6 md:h-6 p-0.5 rounded flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-zinc-800' : 'bg-zinc-900/80 border border-zinc-800'}`}>
                                 {league.logoUrl ? (
                                     <img src={league.logoUrl} alt="" className="w-full h-full object-contain" />
                                 ) : (
-                                    <Award size={14} style={{ color: isActive ? themeColors.primary : 'currentColor' }} />
+                                    <Award size={12} style={{ color: isActive ? themeColors.primary : 'currentColor' }} />
                                 )}
                             </div>
                             <span>{league.name}</span>
@@ -101,7 +101,7 @@ export default function StandingsView() {
             {/* 2. League Hero Banner (Glassmorphism & Large Logo) */}
             {activeLeague && (
                 <div 
-                    className="relative overflow-hidden mb-6 p-6 border border-zinc-800/80 bg-gradient-to-r from-zinc-950/90 to-zinc-900/50 backdrop-blur-md shrink-0 flex items-center justify-between"
+                    className="relative overflow-hidden mb-4 md:mb-6 p-4 md:p-6 border border-zinc-800/80 bg-gradient-to-r from-zinc-950/90 to-zinc-900/50 backdrop-blur-md shrink-0 hidden md:flex items-center justify-between"
                 >
                     {/* Background Decorative Large Logo with Blur */}
                     {activeLeague.logoUrl && (
@@ -165,21 +165,30 @@ export default function StandingsView() {
                 transition={{ duration: 0.25 }}
                 className="flex-1 overflow-auto no-scrollbar bg-[#18181b]/20 border border-zinc-800/50"
             >
-                <table className="w-full text-left border-collapse min-w-[600px]">
+                <table className="w-full text-left border-collapse min-w-full md:min-w-[600px]">
                     <thead className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800/80">
-                        <tr className="text-[11px] font-mono font-bold tracking-widest text-zinc-500 uppercase">
-                            <th className="py-4 px-4 w-16 text-center">Rank</th>
-                            <th className="py-4 px-4">Team</th>
-                            <th className="py-4 px-3 text-center">Played</th>
-                            <th className="py-4 px-3 text-center">Won</th>
-                            {isSoccer && <th className="py-4 px-3 text-center">Drawn</th>}
-                            {isKbo && <th className="py-4 px-3 text-center">Drawn</th>}
-                            <th className="py-4 px-3 text-center">Lost</th>
-                            {isSoccer && <th className="py-4 px-3 text-center">GD</th>}
-                            {isLck && <th className="py-4 px-3 text-center">Set Diff</th>}
-                            {!isLck && !isSoccer && <th className="py-4 px-3 text-center">Win %</th>}
-                            {!isLck && !isKbo && <th className="py-4 px-3 text-center">Points</th>}
-                            {!isLck && !isSoccer && <th className="py-4 px-3 text-center">GB</th>}
+                        <tr className="text-[10px] md:text-[11px] font-mono font-bold tracking-widest text-zinc-500 uppercase">
+                            <th className="py-2.5 px-2 md:py-4 md:px-4 w-10 md:w-16 text-center">Rank</th>
+                            <th className="py-2.5 px-2 md:py-4 md:px-4">Team</th>
+                            <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden sm:table-cell">Played</th>
+                            <th className="py-2.5 px-1 md:py-4 md:px-3 text-center">
+                                <span className="hidden sm:inline">Won</span>
+                                <span className="sm:hidden">W</span>
+                            </th>
+                            {isSoccer && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden sm:table-cell">Drawn</th>}
+                            {isKbo && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden sm:table-cell">Drawn</th>}
+                            <th className="py-2.5 px-1 md:py-4 md:px-3 text-center">
+                                <span className="hidden sm:inline">Lost</span>
+                                <span className="sm:hidden">L</span>
+                            </th>
+                            {isSoccer && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden md:table-cell">GD</th>}
+                            {isLck && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden sm:table-cell">Set Diff</th>}
+                            {!isLck && !isSoccer && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden sm:table-cell">Win %</th>}
+                            {!isLck && !isKbo && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center font-bold">
+                                <span className="hidden sm:inline">Points</span>
+                                <span className="sm:hidden">PTS</span>
+                            </th>}
+                            {!isLck && !isSoccer && <th className="py-2.5 px-1 md:py-4 md:px-3 text-center hidden md:table-cell">GB</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800/30">
@@ -203,21 +212,21 @@ export default function StandingsView() {
                                     }}
                                 >
                                     {/* 순위 */}
-                                    <td className="py-4 px-4 text-center font-oswald text-lg italic font-black text-zinc-400 group-hover:text-white transition-colors">
+                                    <td className="py-2.5 px-2 md:py-4 md:px-4 text-center font-oswald text-base md:text-lg italic font-black text-zinc-400 group-hover:text-white transition-colors">
                                         {item.rank}
                                     </td>
                                     
                                     {/* 팀 로고 및 이름 */}
-                                    <td className="py-4 px-4 flex items-center gap-3">
-                                        <div className="w-8 h-8 flex items-center justify-center shrink-0 text-zinc-600 bg-zinc-900 p-1 border border-zinc-800/50">
+                                    <td className="py-2.5 px-2 md:py-4 md:px-4 flex items-center gap-2 md:gap-3">
+                                        <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center shrink-0 text-zinc-600 bg-zinc-900 p-0.5 md:p-1 border border-zinc-800/50">
                                             {item.logoUrl ? (
                                                 <img src={item.logoUrl} alt="" className="w-full h-full object-contain" />
                                             ) : (
-                                                <Shield size={16} strokeWidth={2} />
+                                                <Shield size={14} className="md:w-4 md:h-4" />
                                             )}
                                         </div>
                                         <span 
-                                            className="text-sm font-semibold tracking-tight transition-colors text-zinc-200 group-hover:text-white"
+                                            className="text-xs md:text-sm font-semibold tracking-tight transition-colors text-zinc-200 group-hover:text-white truncate max-w-[80px] xs:max-w-[120px] sm:max-w-none"
                                             style={{ color: isMyTeam ? '#FFFFFF' : undefined }}
                                         >
                                             {item.teamName}
@@ -225,35 +234,35 @@ export default function StandingsView() {
                                     </td>
 
                                     {/* 경기 수 */}
-                                    <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                    <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors hidden sm:table-cell">
                                         {item.played}
                                     </td>
 
                                     {/* 승 */}
-                                    <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                    <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors">
                                         {item.won}
                                     </td>
 
                                     {/* 무 (축구 & KBO) */}
                                     {isSoccer && (
-                                        <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                        <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors hidden sm:table-cell">
                                             {item.drawn}
                                         </td>
                                     )}
                                     {isKbo && (
-                                        <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                        <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors hidden sm:table-cell">
                                             {item.drawn}
                                         </td>
                                     )}
 
                                     {/* 패 */}
-                                    <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                    <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors">
                                         {item.lost}
                                     </td>
 
                                     {/* 득실 (축구 GD) */}
                                     {isSoccer && (
-                                        <td className={`py-4 px-3 text-center font-mono text-xs font-semibold ${
+                                        <td className={`py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-[10px] md:text-xs font-semibold hidden md:table-cell ${
                                             (item.goalDifference || 0) > 0 ? 'text-green-500' : (item.goalDifference || 0) < 0 ? 'text-red-500' : 'text-zinc-500'
                                         }`}>
                                             {getDiffText(item.goalDifference)}
@@ -262,7 +271,7 @@ export default function StandingsView() {
 
                                     {/* 세트득실 (LCK Set Diff) */}
                                     {isLck && (
-                                        <td className={`py-4 px-3 text-center font-mono text-xs font-semibold ${
+                                        <td className={`py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-[10px] md:text-xs font-semibold hidden sm:table-cell ${
                                             (item.points || 0) > 0 ? 'text-green-500' : (item.points || 0) < 0 ? 'text-red-500' : 'text-zinc-500'
                                         }`}>
                                             {getDiffText(item.points)}
@@ -271,21 +280,21 @@ export default function StandingsView() {
 
                                     {/* 승률 (KBO, NBA, MLB 등) */}
                                     {!isLck && !isSoccer && (
-                                        <td className="py-4 px-3 text-center font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                                        <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-400 group-hover:text-zinc-200 transition-colors hidden sm:table-cell">
                                             {winRateText}
                                         </td>
                                     )}
 
                                     {/* 승점 (축구 Points, ESPN NHL Points 등) */}
                                     {!isLck && !isKbo && (
-                                        <td className="py-4 px-3 text-center font-mono font-bold text-zinc-200 group-hover:text-white">
+                                        <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm font-bold text-zinc-200 group-hover:text-white">
                                             {item.points}
                                         </td>
                                     )}
 
                                     {/* 게임차 (GB) */}
                                     {!isLck && !isSoccer && (
-                                        <td className="py-4 px-3 text-center font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                        <td className="py-2.5 px-1 md:py-4 md:px-3 text-center font-mono text-xs md:text-sm text-zinc-500 group-hover:text-zinc-300 transition-colors hidden md:table-cell">
                                             {item.gamesBehind || '-'}
                                         </td>
                                     )}

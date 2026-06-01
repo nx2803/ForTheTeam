@@ -26,7 +26,7 @@ export interface StandingItem {
 @Injectable()
 export class StandingsService {
   private readonly logger = new Logger(StandingsService.name);
-  private readonly CACHE_TTL = 1000 * 60 * 60 * 12; // 12시간 캐시 유지
+  private readonly CACHE_TTL = 1000 * 60 * 60 * 2; // 2시간 캐시 유지
 
   constructor(
     private readonly prisma: PrismaService,

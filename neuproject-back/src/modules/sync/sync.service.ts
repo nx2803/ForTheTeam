@@ -91,6 +91,8 @@ export class SyncService {
             await this.syncLck();
         } catch (error) {
             this.logger.error(`[CRON_LIVE] Live scores sync failed: ${error.message}`);
+        } finally {
+            await this.clearSyncCache();
         }
         this.logger.log('[CRON_LIVE] Live scores synchronization completed');
     }

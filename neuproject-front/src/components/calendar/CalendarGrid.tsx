@@ -19,6 +19,7 @@ interface ScrollableEventListProps {
 
 const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) => {
     const { themeColors } = useTheme();
+    const { myTeams } = useTeamStore();
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = React.useState(false);
     const scrollPosRef = React.useRef(0);
@@ -75,6 +76,33 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                     const isRace = ev.type === 'race';
                     const isFinished = ev.score !== null && ev.score !== undefined;
 
+                    // 응원팀 경기 결과 계산
+                    let result: 'win' | 'loss' | 'draw' | 'none' = 'none';
+                    if (isFinished && !isRace) {
+                        const [homeScore, awayScore] = ev.score.split(':').map(Number);
+                        const homeIsMyTeam = myTeams.some(t => t.id === ev.teamId);
+                        const awayIsMyTeam = myTeams.some(t => t.id === ev.awayTeamId);
+                        
+                        if (homeIsMyTeam || awayIsMyTeam) {
+                            if (homeScore === awayScore) {
+                                result = 'draw';
+                            } else {
+                                const homeWon = homeScore > awayScore;
+                                const isWin = (homeIsMyTeam && homeWon) || (awayIsMyTeam && !homeWon);
+                                result = isWin ? 'win' : 'loss';
+                            }
+                        }
+                    }
+
+                    // 승패에 따른 카드 스타일 설정
+                    let cardClass = "bg-zinc-800/80 border-zinc-600/50 hover:bg-zinc-700 hover:border-zinc-400 text-zinc-300";
+                    if (result === 'win') {
+                        cardClass = "bg-zinc-800/90 border-zinc-600/50 hover:bg-zinc-700 text-white";
+                    } else if (result === 'loss') {
+                        // 카드 불투명도는 100%로 두고, 배경만 약간 어둡게 가독성 확보
+                        cardClass = "bg-zinc-900/60 border-zinc-700/40 hover:bg-zinc-800 text-zinc-500";
+                    }
+
                     const buildSearchUrl = (e: any) => {
                         const query = e.type === 'race'
                             ? `${e.homeTeamName} ${e.date}`
@@ -86,7 +114,7 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                         <div
                             key={ev.id}
                             onClick={() => window.open(buildSearchUrl(ev), '_blank')}
-                            className="relative group/ev flex items-center justify-between overflow-hidden bg-zinc-800/80 border border-zinc-600/50 hover:bg-zinc-700 hover:border-zinc-400 transition-all px-1.5 py-1 cursor-pointer"
+                            className={`relative group/ev flex items-center justify-between overflow-hidden border transition-all px-1.5 py-1 cursor-pointer ${cardClass}`}
                         >
                             {isRace ? (
                                 <div className="w-full flex justify-between items-center px-2 overflow-hidden">
@@ -102,12 +130,25 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                                 <>
                                     {/* Home Team */}
                                     <div className="flex-1 flex items-center justify-end gap-1.5 overflow-hidden">
-                                        <span className="font-oswald font-bold text-zinc-300 group-hover/ev:text-white text-xs md:text-sm uppercase truncate tracking-tighter">
+                                        <span 
+                                            className={`font-oswald font-bold text-xs md:text-sm uppercase truncate tracking-tighter transition-colors ${
+                                                result === 'loss' 
+                                                    ? 'text-zinc-500' 
+                                                    : 'text-zinc-300 group-hover/ev:text-white'
+                                            }`}
+                                        >
                                             {ev.homeTeamAbbr || ev.homeTeamName?.slice(0, 3)}
                                         </span>
                                         <div className="w-5 h-5 md:w-6 md:h-6 shrink-0 flex items-center justify-center">
                                             {ev.homeTeam?.logoUrl ? (
-                                                <Image src={ev.homeTeam.logoUrl} alt="" className="object-contain" width={24} height={24} unoptimized />
+                                                <Image 
+                                                    src={ev.homeTeam.logoUrl} 
+                                                    alt="" 
+                                                    className="w-full h-full object-contain" 
+                                                    width={24} 
+                                                    height={24} 
+                                                    unoptimized 
+                                                />
                                             ) : (
                                                 <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
@@ -117,7 +158,16 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                                     {/* Score/Time */}
                                     <div className="mx-1.5 flex flex-col items-center justify-center min-w-8 md:min-w-10">
                                         {isFinished ? (
-                                            <span className="font-mono text-xs md:text-sm font-black leading-none text-white">
+                                            <span 
+                                                className={`font-mono text-xs md:text-sm font-black leading-none transition-colors ${
+                                                    result === 'win' 
+                                                        ? '' 
+                                                        : result === 'loss' 
+                                                            ? 'text-zinc-500' 
+                                                            : 'text-white'
+                                                }`}
+                                                style={{ color: result === 'win' ? themeColors.primary : undefined }}
+                                            >
                                                 {ev.score}
                                             </span>
                                         ) : (
@@ -131,12 +181,25 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                                     <div className="flex-1 flex items-center justify-start gap-1.5 overflow-hidden">
                                         <div className="w-5 h-5 md:w-6 md:h-6 shrink-0 flex items-center justify-center">
                                             {ev.awayTeam?.logoUrl ? (
-                                                <Image src={ev.awayTeam.logoUrl} alt="" className="object-contain" width={24} height={24} unoptimized />
+                                                <Image 
+                                                    src={ev.awayTeam.logoUrl} 
+                                                    alt="" 
+                                                    className="w-full h-full object-contain" 
+                                                    width={24} 
+                                                    height={24} 
+                                                    unoptimized 
+                                                />
                                             ) : (
                                                 <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
                                         </div>
-                                        <span className="font-oswald font-bold text-zinc-300 group-hover/ev:text-white text-xs md:text-sm uppercase truncate tracking-tighter">
+                                        <span 
+                                            className={`font-oswald font-bold text-xs md:text-sm uppercase truncate tracking-tighter transition-colors ${
+                                                result === 'loss' 
+                                                    ? 'text-zinc-500' 
+                                                    : 'text-zinc-300 group-hover/ev:text-white'
+                                            }`}
+                                        >
                                             {ev.awayTeamAbbr || ev.awayTeamName?.slice(0, 3)}
                                         </span>
                                     </div>
@@ -158,6 +221,9 @@ export default function CalendarGrid({
 }: CalendarGridProps) {
     const { themeColors } = useTheme();
     const [isMounted, setIsMounted] = React.useState(false);
+
+    const rowCount = Math.ceil((startDay + daysInMonth) / 7);
+    const gridRowsClass = rowCount === 6 ? 'md:grid-rows-6' : 'md:grid-rows-5';
 
     React.useEffect(() => {
         setIsMounted(true);
@@ -187,7 +253,10 @@ export default function CalendarGrid({
                 ))}
             </div>
 
-            <div id="calendar-grid-container" className="flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] md:auto-rows-[minmax(170px,1fr)] overflow-y-auto md:overflow-hidden border-t border-l border-zinc-800 no-scrollbar relative">
+            <div 
+                id="calendar-grid-container" 
+                className={`flex-1 grid grid-cols-1 md:grid-cols-7 auto-rows-[140px] ${gridRowsClass} md:auto-rows-fr border-t border-l border-zinc-800 no-scrollbar relative overflow-y-auto md:overflow-hidden`}
+            >
                 {/* Empty Slots */}
                 {Array.from({ length: startDay }).map((_, i) => (
                     <div key={`empty-${i}`} className="hidden md:block bg-zinc-900/20 border-r border-b border-zinc-800"></div>

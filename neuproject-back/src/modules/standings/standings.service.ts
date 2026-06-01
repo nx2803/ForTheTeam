@@ -208,10 +208,21 @@ export class StandingsService {
    */
   private async aggregateKboStandings(leagueId: string): Promise<StandingItem[]> {
     try {
-      const now = new Date();
-      const currentYear = now.getFullYear();
+      // KBO 리그의 가장 최근 finished 경기를 찾아 그 날짜를 기준으로 집계 연도 결정
+      const lastMatch = await this.prisma.matches.findFirst({
+        where: {
+          league_id: leagueId,
+          status: 'finished',
+        },
+        orderBy: {
+          match_at: 'desc',
+        },
+      });
 
-      // 올해 시즌에 속하고 완료된 KBO 경기들 가져오기
+      const referenceDate = lastMatch ? new Date(lastMatch.match_at) : new Date();
+      const currentYear = referenceDate.getFullYear();
+
+      // 해당 연도 시즌에 속하고 완료된 KBO 경기들 가져오기
       const matches = await this.prisma.matches.findMany({
         where: {
           league_id: leagueId,

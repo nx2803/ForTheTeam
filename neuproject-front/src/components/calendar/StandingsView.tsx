@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
 import { useStandings } from '@/hooks/useStandings';
+import Image from 'next/image';
 import { Shield, Award } from 'lucide-react';
 
 const ALL_LEAGUES = [
@@ -46,7 +47,7 @@ export default function StandingsView() {
     const leagueNameUpper = leagueName.toUpperCase();
 
     const isLck = leagueNameUpper.includes('LCK');
-    const isSoccer = category.toLowerCase() === 'soccer' || category.toLowerCase() === 'football' || leagueNameUpper.includes('EPL') || leagueNameUpper.includes('LIGA') || leagueNameUpper.includes('BUNDESLIGA') || leagueNameUpper.includes('SERIE');
+    const isSoccer = category === '축구' || category.toLowerCase() === 'soccer' || category.toLowerCase() === 'football' || leagueNameUpper.includes('EPL') || leagueNameUpper.includes('LIGA') || leagueNameUpper.includes('BUNDESLIGA') || leagueNameUpper.includes('SERIE');
     const isKbo = leagueNameUpper.includes('KBO');
 
     return (
@@ -87,7 +88,7 @@ export default function StandingsView() {
                             
                             <div className={`w-4 h-4 md:w-6 md:h-6 p-0.5 rounded flex items-center justify-center shrink-0 transition-colors ${isActive ? 'bg-zinc-800' : 'bg-zinc-900/80 border border-zinc-800'}`}>
                                 {league.logoUrl ? (
-                                    <img src={league.logoUrl} alt="" className="w-full h-full object-contain" />
+                                    <Image src={league.logoUrl} alt="" className="object-contain" width={24} height={24} unoptimized />
                                 ) : (
                                     <Award size={12} style={{ color: isActive ? themeColors.primary : 'currentColor' }} />
                                 )}
@@ -120,7 +121,7 @@ export default function StandingsView() {
                         {/* Large League Logo Container */}
                         <div className="w-16 h-16 md:w-20 md:h-20 bg-zinc-900 p-2 md:p-3 border border-zinc-800/80 rounded-lg flex items-center justify-center shrink-0 shadow-2xl">
                             {activeLeague.logoUrl ? (
-                                <img src={activeLeague.logoUrl} alt={activeLeague.name} className="w-full h-full object-contain" />
+                                <Image src={activeLeague.logoUrl} alt={activeLeague.name} className="object-contain" width={80} height={80} unoptimized />
                             ) : (
                                 <Award size={36} className="text-zinc-600" />
                             )}
@@ -220,7 +221,7 @@ export default function StandingsView() {
                                     <td className="py-2.5 px-2 md:py-4 md:px-4 flex items-center gap-2 md:gap-3">
                                         <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center shrink-0 text-zinc-600 bg-zinc-900 p-0.5 md:p-1 border border-zinc-800/50">
                                             {item.logoUrl ? (
-                                                <img src={item.logoUrl} alt="" className="w-full h-full object-contain" />
+                                                <Image src={item.logoUrl} alt="" className="object-contain" width={32} height={32} unoptimized />
                                             ) : (
                                                 <Shield size={14} className="md:w-4 md:h-4" />
                                             )}

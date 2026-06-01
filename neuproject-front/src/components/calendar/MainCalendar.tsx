@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { matchService } from '@/lib/services/matchService';
@@ -10,21 +9,15 @@ import { Team } from '@/types/team';
 import { useTheme } from '@/hooks/useTheme';
 import { useMatches } from '@/hooks/useMatches';
 import { getDDay } from '@/lib/dateUtils';
+import apiClient from '@/lib/apiClient';
 
 import CalendarHeader from './CalendarHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyGuideOverlay from './EmptyGuideOverlay';
 
-// Dynamic imports for bundle optimization
-const CalendarGrid = dynamic(() => import('./CalendarGrid'), {
-    loading: () => <LoadingSpinner size="lg" text="GRID LOADING..." />
-});
-const MatchListView = dynamic(() => import('./MatchListView'), {
-    loading: () => <LoadingSpinner size="lg" text="LIST LOADING..." />
-});
-const StandingsView = dynamic(() => import('./StandingsView'), {
-    loading: () => <LoadingSpinner size="lg" text="STANDINGS LOADING..." />
-});
+import CalendarGrid from './CalendarGrid';
+import MatchListView from './MatchListView';
+import StandingsView from './StandingsView';
 
 
 import { useTeamStore } from '@/store/teamStore';
@@ -74,6 +67,24 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
 
         fetchMonth(1);  // Prefetch Next Month
         fetchMonth(-1); // Prefetch Prev Month
+
+        // 3개 주요 리그 순위표 프리페칭 추가
+        const leaguesToPrefetch = [
+            'b0f16e7b-72d2-4e94-861e-546fe11ad4ea', // KBO
+            '08dec493-da36-4afa-a43c-6548f6baada1', // LCK
+            '9a268762-c365-49bf-aa5e-28982e2bde61'  // EPL
+        ];
+        
+        leaguesToPrefetch.forEach(leagueId => {
+            client.prefetchQuery({
+                queryKey: ['standings', leagueId],
+                queryFn: async () => {
+                    const response = await apiClient.get(`/standings/${leagueId}`);
+                    return response.data;
+                },
+                staleTime: 1000 * 60 * 5,
+            });
+        });
     }, [currentDate, client, user?.uid, isLoggedIn, myTeams]);
 
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();

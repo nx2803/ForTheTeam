@@ -27,9 +27,18 @@ export class MatchesService {
 
         this.logger.log(`Fetching matches from DB for ${year}-${month}`);
 
+        // 사용자가 팔로우한 팀 ID 목록 1차 조회 (IN 쿼리 최적화)
+        let followedTeamIds: string[] = [];
+        if (memberUid) {
+            const follows = await this.prisma.follows.findMany({
+                where: { member_uid: memberUid },
+                select: { team_id: true },
+            });
+            followedTeamIds = follows.map(f => f.team_id);
+        }
+
         // 기본적인 경기 조회 쿼리 (팀 정보 포함)
         const matches = await this.prisma.matches.findMany({
-            // ... (기존 쿼리 생략 가능하지만 전체 유지)
             where: {
                 match_at: {
                     gte: startDate,
@@ -37,8 +46,8 @@ export class MatchesService {
                 },
                 ...(memberUid && {
                     OR: [
-                        { home_team: { follows: { some: { member_uid: memberUid } } } },
-                        { away_team: { follows: { some: { member_uid: memberUid } } } },
+                        { home_team_id: { in: followedTeamIds } },
+                        { away_team_id: { in: followedTeamIds } },
                         // F1 등 팀 단위가 아닌 이벤트 경기 필터링 (사용자가 해당 리그의 어떤 팀이라도 팔로우 한 경우)
                         {
                             AND: [
@@ -89,6 +98,19 @@ export class MatchesService {
 
         const teamIdArray = teamIds ? teamIds.split(',').filter(id => id.trim() !== '') : [];
 
+        // 사용자가 팔로우한 팀 ID 목록 1차 조회 (IN 쿼리 최적화)
+        let followedTeamIds: string[] = [];
+        if (memberUid) {
+            const follows = await this.prisma.follows.findMany({
+                where: { member_uid: memberUid },
+                select: { team_id: true },
+            });
+            followedTeamIds = follows.map(f => f.team_id);
+        }
+
+        // 대상 팀 ID 배열 합산 및 중복 제거
+        const targetTeamIds = [...new Set([...followedTeamIds, ...teamIdArray])];
+
         const matches = await this.prisma.matches.findMany({
             where: {
                 match_at: {
@@ -100,16 +122,8 @@ export class MatchesService {
                 AND: [
                     {
                         OR: [
-                            // UID 기준 팔로우 팀 필터
-                            ...(memberUid ? [
-                                { home_team: { follows: { some: { member_uid: memberUid } } } },
-                                { away_team: { follows: { some: { member_uid: memberUid } } } },
-                            ] : []),
-                            // 직접 전달된 teamIds 필터
-                            ...(teamIdArray.length > 0 ? [
-                                { home_team_id: { in: teamIdArray } },
-                                { away_team_id: { in: teamIdArray } },
-                            ] : []),
+                            { home_team_id: { in: targetTeamIds } },
+                            { away_team_id: { in: targetTeamIds } },
                         ]
                     }
                 ]

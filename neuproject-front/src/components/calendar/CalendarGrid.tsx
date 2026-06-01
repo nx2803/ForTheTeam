@@ -4,6 +4,7 @@ import React from 'react';
 import { useTeamStore } from '@/store/teamStore';
 import { useTheme } from '@/hooks/useTheme';
 import { Flag, Shield } from 'lucide-react';
+import Image from 'next/image';
 
 interface CalendarGridProps {
     currentDate: Date;
@@ -16,7 +17,7 @@ interface ScrollableEventListProps {
     events: any[];
 }
 
-const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
+const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) => {
     const { themeColors } = useTheme();
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const [isHovered, setIsHovered] = React.useState(false);
@@ -106,7 +107,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                         </span>
                                         <div className="w-5 h-5 md:w-6 md:h-6 shrink-0 flex items-center justify-center">
                                             {ev.homeTeam?.logoUrl ? (
-                                                <img src={ev.homeTeam.logoUrl} alt="" className="w-full h-full object-contain" />
+                                                <Image src={ev.homeTeam.logoUrl} alt="" className="object-contain" width={24} height={24} unoptimized />
                                             ) : (
                                                 <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
@@ -130,7 +131,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
                                     <div className="flex-1 flex items-center justify-start gap-1.5 overflow-hidden">
                                         <div className="w-5 h-5 md:w-6 md:h-6 shrink-0 flex items-center justify-center">
                                             {ev.awayTeam?.logoUrl ? (
-                                                <img src={ev.awayTeam.logoUrl} alt="" className="w-full h-full object-contain" />
+                                                <Image src={ev.awayTeam.logoUrl} alt="" className="object-contain" width={24} height={24} unoptimized />
                                             ) : (
                                                 <Shield size={16} className="text-zinc-500" strokeWidth={2} />
                                             )}
@@ -147,7 +148,7 @@ const ScrollableEventList = ({ events }: ScrollableEventListProps) => {
             </div>
         </div>
     );
-};
+});
 
 export default function CalendarGrid({
     currentDate,

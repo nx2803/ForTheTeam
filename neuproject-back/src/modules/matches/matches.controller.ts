@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { MatchesService } from './matches.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
@@ -8,6 +9,8 @@ export class MatchesController {
     constructor(private readonly matchesService: MatchesService) { }
 
     @Get('calendar')
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(120)
     @ApiOperation({ 
         summary: '달력 뷰 전용 경기 일정 조회',
         description: '특정 월의 전체 경기 일정을 조회합니다. 사용자 UID 전달 시 본인이 팔로우한 팀의 일정만 필터링하여 반환합니다.' 
@@ -28,6 +31,8 @@ export class MatchesController {
     }
 
     @Get('recent')
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(60)
     @ApiOperation({ 
         summary: '최근 경기 결과 조회 (메인 티커용)',
         description: '사용자가 팔로우한 팀들의 최근 경기 결과(종료된 경기)를 조회합니다.' 

@@ -8,14 +8,14 @@
 
 ## ✨ 시스템 아키텍처 및 주요 기능 (System Architecture & Key Features)
 
-본 프로젝트는 대규모 트래픽과 다양한 외부 데이터 소스를 안정적으로 통합하기 위해 설계된 종합 스포츠 플랫폼입니다. MSA(Microservices Architecture) 지향적인 모듈화 설계와 CSR/SSR이 결합된 하이브리드 프론트엔드 구성을 특징으로 합니다.
+본 프로젝트는 다양한 외부 스포츠 데이터 소스를 안정적으로 통합하여 제공하는 스포츠 일정 통합 플랫폼입니다. 모듈화된 NestJS 백엔드 설계와 Next.js 하이브리드 프론트엔드 아키텍처를 특징으로 합니다.
 
 *   **⚡ Real-time Match Synchronization (WebSockets)**:
     *   **Bi-directional Communication**: NestJS `MatchesGateway`와 `socket.io-client`를 결합하여 경기 스코어 및 상태 변경 시 즉각적으로 클라이언트에 Push 알림 전송.
     *   **Smart Invalidation**: 소켓 이벤트를 수신하면 `@tanstack/react-query`의 캐시를 즉시 무효화(Invalidate)하여 사용자 개입 없이 UI 최신화.
 *   **🚀 Ultra-Fast Rendering (Partial Prerendering - PPR)**:
-    *   Next.js 16의 최신 캐싱 모델인 `cacheComponents`를 도입하여 정적 셸(Shell)은 즉시 서빙하고, 실시간 경기 데이터는 스트리밍 방식으로 렌더링하는 PPR 구조 확립.
-*   **📊 Enterprise Observability (OpenTelemetry)**:
+    *   Next.js 16의 부분 사전 렌더링(PPR)과 `cacheComponents` 설정을 조화롭게 연동하여 정적 셸(Shell)은 즉시 서빙하고, 실시간 경기 데이터는 스트리밍 방식으로 렌더링하는 PPR 구조 확립.
+*   **📊 Observability (OpenTelemetry)**:
     *   **Full-stack Tracing**: Node.js SDK를 활용하여 HTTP 요청, NestJS 내부 로직, DB 쿼리로 이어지는 전체 요청 라이프사이클을 추적.
     *   **Performance Bottleneck Detection**: OTLP 내보내기를 통한 백엔드 성능 병목 지점 시각화 및 모니터링 기반 마련.
 *   **📅 Unified Sports Data Aggregation**:
@@ -56,7 +56,7 @@
 
 
 *   **Architecture**: App Router 기반 모듈식 컴포넌트 설계 (`src/components`, `src/app`).
-*   **Next.js 16 & PPR**: 최신 `cacheComponents` 설정을 통한 **Partial Prerendering** 활성화. 정적 컨텐츠의 극단적인 속도와 동적 데이터의 유연성을 동시에 확보.
+*   **Next.js 16 & PPR**: `cacheComponents`와 `ppr: 'incremental'` 설정을 통한 **Partial Prerendering** 활성화. 정적 컨텐츠의 속도와 동적 데이터의 유연성을 동시에 확보.
 *   **Tailwind CSS v4 Engine**: 최신 v4 버전의 **Zero-runtime 엔진**을 사용하여 빌드 속도 및 런타임 성능을 극대화.
 *   **Real-time Integration**: 커스텀 훅(`useSocket`)을 통한 전역 소켓 연결 관리 및 실시간 데이터 스트리밍 연동.
 *   **Next.js 16 & React 19 (Modern Stack)**: 최신 React 19 버전과 **React Compiler**를 도입하여, 수동 `memo`, `useMemo` 없이도 컴포넌트 레벨의 자동 최적화 및 고성능 렌더링 구현.
@@ -81,7 +81,7 @@
 | ![Redis](https://img.shields.io/badge/Redis-FF4438?style=for-the-badge&logo=Redis&logoColor=white) | latest | 분산 캐싱 (In-memory fallback 포함) |
 | ![RxJS](https://img.shields.io/badge/RxJS-D10030?style=for-the-badge&logo=RxJS&logoColor=white) | latest | 비동기 이벤트 스트림 처리 |
 | ![Passport](https://img.shields.io/badge/Passport.js-34E27A?style=for-the-badge&logo=Passport&logoColor=black) | latest | JWT 기반 인증 |
-| ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=for-the-badge&logo=OpenTelemetry&logoColor=white) | latest | 분산 트레이싱 & Observability |
+| ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=for-the-badge&logo=OpenTelemetry&logoColor=white) | latest | 트레이싱 & Observability |
 | ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=black) | OpenAPI 3.0 | API 문서 자동화 |
 
 
@@ -97,8 +97,8 @@
     *   `ESPNModule`: NBA/MLB 등 북미 스포츠 실시간 스코어 연동. 
     *   `KBOModule`: 네이버 스포츠의 **내부 API 게이트웨이**를 리버스 엔지니어링하여 국내 야구 데이터를 가장 신속하고 정확하게 동기화.
 *   **Data Synchronization (SyncService)**: 
-    *   **Staggered Cron Scheduling**: Koyeb 메모리 자원 최적화를 위해 종목별 동기화 실행 시간을 분산(축구 00시, ESPN 03시, KBO/LCK 06시 등)하여 메모리 피크 방지.
-    *   **Sequential Processing Pipeline**: 대규모 데이터 처리 시 종목 및 리그별 순차 처리를 강제하고, 처리 사이의 명시적 Delay를 부여하여 JavaScript Heap 메모리 효율성 극대화 (OOM 방지).
+    *   **Staggered Cron Scheduling**: 메모리 자원 최적화를 위해 종목별 동기화 실행 시간을 분산(축구 00시, ESPN 03시, KBO/LCK 06시 등)하여 메모리 피크 방지.
+    *   **Parallel Chunk Processing**: 대규모 데이터 수집 시 30개 단위 병렬 배치 처리(Chunking) 및 `Promise.all` 기법을 적용하여 동기화 성능을 기존 대비 대폭 개선.
     *   **Smart Emit & Cache Control**: DB Upsert 시 변경 사항이 있을 때만 소켓 이벤트를 발생시키며, 대규모 동기화 완료 후 즉각적인 **서버 캐시 리셋**을 통해 유저에게 최신 정보 제공.
     *   **Resilient API Handling**: 특정 어댑터가 Rate-limit(403/429) 등으로 실패하더라도 전체 파이프라인이 중단되지 않도록 Failover 메커니즘 탑재.
 *   **API Validation**: `@nestjs/swagger`와 `class-validator`를 결합하여 런타임 DTO 제약조건 준수 확인 및 동적 OpenAPI(Swagger UI) 문서 자동화 구현.
@@ -195,7 +195,7 @@ erDiagram
 ---
 
 
-## 🔍 Technical Deep Dive (Advanced Perspective)
+## 🔍 Technical Deep Dive
 
 ### 1. 실시간 데이터 동기화 파이프라인 (Real-time Pipeline)
 단순한 폴링(Polling) 방식에서 벗어나, 데이터의 변경 사항이 발생하는 즉시 클라이언트로 전달되는 이벤트 기반 아키텍처를 구축했습니다.
@@ -235,12 +235,12 @@ Prisma를 활용하여 축구/야구와 같은 1:1 매치업뿐만 아니라, F1
 ### 7. GPU 가속 애니메이션 및 레이아웃 최적화
 Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의 레이아웃 재계산(Reflow)을 유발하는 속성(Margin, Padding 등) 대신, GPU 가속을 받는 `transform` 속성 기반의 애니메이션을 구현하여 저사양 기기나 모바일 환경에서도 고주사율(60fps+)의 매끄러운 동작을 보장합니다.
 
-### 8. 프로덕션 수준의 성능 최적화 (Applied Optimizations)
-단순한 기능 구현을 넘어, 엔터프라이즈 환경에 적합한 아키텍처적 장치를 실제 코드로 구현했습니다.
-*   **Database Query Optimization**: 
-    *   `match_at` (경기 시간)과 `league_id` 필드에 **Composite Index**를 설계하여, 수만 건의 매치 중 특정 날짜 범위의 경기를 `O(log N)` 속도로 검색.
-    *   Prisma의 **Fluent API Optimization**을 통해 불필요한 필드 조회를 최소화하고 N+1 문제를 방지합니다.
-*   **Server-side Response Caching**: NestJS `CacheModule`을 활용하여 빈번한 요청에 대해 데이터베이스 I/O 부하를 70% 이상 절감. Redis 기반 분산 캐시와 메모리 폴백(Fallback) 구조 지원.
+### 8. 성능 최적화 적용 내역 (Applied Optimizations)
+안정적인 서비스를 위해 백엔드와 프론트엔드 전반에 성능 최적화를 적용했습니다.
+*   **Database Query & Index Optimization**: 
+    *   경기 일정 테이블(`matches`)의 `match_at`(경기 시간), `league_id`, `home_team_id`, `away_team_id` 필드에 인덱스를 설계하여 관계형 조인 검색 속도 향상.
+    *   데이터 조회 시 필요한 컬럼만 추출하는 `select` 프로젝션 쿼리를 사용하여 불필요한 필드 조회를 방지하고 네트워크 전송량 최적화.
+*   **Server-side Response Caching**: NestJS `CacheModule` 및 `CacheInterceptor`를 활용하여 경기 일정(`/matches/calendar`) 및 최근 경기(`/matches/recent`) 응답을 캐싱하고 데이터베이스 I/O 부하를 대폭 절감. 데이터 동기화 완료 시점에만 캐시가 리셋되도록 보완.
 *   **HTTP Payload Compression**: `compression` 미들웨어를 통해 JSON 응답 데이터를 압축 전송(Gzip/Brotli), 네트워크 대역폭 절약 및 클라이언트 로딩 속도를 최대 3배 가속화.
 *   **Frontend Virtualization & Modern Stack**: 
     - `Next.js 16 & React 19` 생태계를 통한 현대적인 컴포넌트 설계 및 최적화.
@@ -262,7 +262,7 @@ Framer Motion의 `layoutId`와 `AnimatePresence`를 결합하여 브라우저의
 
 ## 🚀 도커 환경 배포 가이드 (Deployment via Docker)
 
-`docker-compose` 구성을 활용해 호스트 머신의 환경(Node버전 차이 등) 제약 없이 즉각적으로 Production 수준의 서버를 기동할 수 있습니다.
+`docker-compose` 구성을 활용해 호스트 머신의 환경(Node버전 차이 등) 제약 없이 즉각적으로 서버를 기동할 수 있습니다.
 
 ### 1) 환경 변수 파일 준비 (`.env`)
 프로젝트 루트 또는 각 폴더 최상단에 마스터 `.env` 리소스를 세팅합니다. (Supabase 연결 문자열, JWT 시크릿, 및 각종 API Key 포함)

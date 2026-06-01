@@ -67,9 +67,37 @@ export class MatchesService {
                     ],
                 }),
             },
-            include: {
-                home_team: true,
-                away_team: true,
+            select: {
+                id: true,
+                home_team_id: true,
+                away_team_id: true,
+                home_team_name: true,
+                away_team_name: true,
+                match_at: true,
+                status: true,
+                home_score: true,
+                away_score: true,
+                venue: true,
+                home_team: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo_url: true,
+                        primary_color: true,
+                        secondary_color: true,
+                        abbreviation: true,
+                    }
+                },
+                away_team: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo_url: true,
+                        primary_color: true,
+                        secondary_color: true,
+                        abbreviation: true,
+                    }
+                },
                 leagues: true,
             },
             orderBy: {
@@ -128,9 +156,37 @@ export class MatchesService {
                     }
                 ]
             },
-            include: {
-                home_team: true,
-                away_team: true,
+            select: {
+                id: true,
+                home_team_id: true,
+                away_team_id: true,
+                home_team_name: true,
+                away_team_name: true,
+                match_at: true,
+                status: true,
+                home_score: true,
+                away_score: true,
+                venue: true,
+                home_team: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo_url: true,
+                        primary_color: true,
+                        secondary_color: true,
+                        abbreviation: true,
+                    }
+                },
+                away_team: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo_url: true,
+                        primary_color: true,
+                        secondary_color: true,
+                        abbreviation: true,
+                    }
+                },
                 leagues: true,
             },
             orderBy: {

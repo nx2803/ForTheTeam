@@ -23,17 +23,17 @@ model leagues {
   created_at DateTime? @default(now()) @db.Timestamptz(6)
   updated_at DateTime? @default(now()) @db.Timestamptz(6)
   logo_url   String?
-  teams      teams[]
   matches    matches[]
+  teams      teams[]
 }
 
 model members {
-  uid                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                 String    @unique @db.VarChar(255)
-  hashed_password       String    @db.VarChar(255)
-  nickname              String    @db.VarChar(100)
-  joined_at             DateTime? @default(now()) @db.Timestamp(6)
-  follows               follows[]
+  uid             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  hashed_password String    @db.VarChar(255)
+  nickname        String    @db.VarChar(100)
+  joined_at       DateTime? @default(now()) @db.Timestamp(6)
+  follows         follows[]
 }
 
 model teams {
@@ -43,42 +43,14 @@ model teams {
   logo_url        String?
   primary_color   String?
   secondary_color String?
-  external_api_id String?   @unique
-  abbreviation    String?
+  external_api_id String?
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
   updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  abbreviation    String?   @db.VarChar(10)
   follows         follows[]
-  leagues         leagues   @relation(fields: [league_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  home_matches    matches[] @relation("home_matches")
   away_matches    matches[] @relation("away_matches")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model todos {
-  id        BigInt   @id @default(autoincrement())
-  text      String?  @db.VarChar
-  completed Boolean? @default(false)
-}
-
-model restaurants {
-  UC_SEQ                  BigInt    @id
-  MAIN_TITLE              String?
-  GUGUN_NM                String?
-  LAT                     Float?
-  LNG                     Float?
-  PLACE                   String?
-  TITLE                   String?
-  SUBTITLE                String?
-  ADDR1                   String?
-  ADDR2                   String?
-  CNTCT_TEL               String?
-  HOMEPAGE_URL            String?
-  USAGE_DAY_WEEK_AND_TIME String?
-  RPRSNTV_MENU            String?
-  MAIN_IMG_NORMAL         String?
-  MAIN_IMG_THUMB          String?
-  ITEMCNTNTS              String?
-  created_at              DateTime? @default(now()) @db.Timestamptz(6)
+  home_matches    matches[] @relation("home_matches")
+  leagues         leagues   @relation(fields: [league_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model matches {
@@ -86,21 +58,99 @@ model matches {
   league_id       String    @db.Uuid
   home_team_id    String?   @db.Uuid
   away_team_id    String?   @db.Uuid
-  home_team_name  String?   // 외부 API 데이터 백업용 (DB에 팀이 없을 경우 대비)
+  home_team_name  String?
   away_team_name  String?
   match_at        DateTime  @db.Timestamptz(6)
-  status          String    @default("scheduled") // scheduled, ongoing, finished, cancelled
+  status          String    @default("scheduled")
   home_score      Int       @default(0)
   away_score      Int       @default(0)
   external_api_id String    @unique
   venue           String?
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
   updated_at      DateTime? @default(now()) @db.Timestamptz(6)
-
-  leagues    leagues  @relation(fields: [league_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  home_team  teams?   @relation("home_matches", fields: [home_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  away_team  teams?   @relation("away_matches", fields: [away_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  away_team       teams?    @relation("away_matches", fields: [away_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  home_team       teams?    @relation("home_matches", fields: [home_team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  leagues         leagues   @relation(fields: [league_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([match_at])
   @@index([league_id, match_at])
+  @@index([home_team_id])
+  @@index([away_team_id])
+}
+
+model batch_job_execution {
+  job_execution_id            BigInt                       @id
+  version                     BigInt?
+  job_instance_id             BigInt
+  create_time                 DateTime                     @db.Timestamp(6)
+  start_time                  DateTime?                    @db.Timestamp(6)
+  end_time                    DateTime?                    @db.Timestamp(6)
+  status                      String?                      @db.VarChar(10)
+  exit_code                   String?                      @db.VarChar(2500)
+  exit_message                String?                      @db.VarChar(2500)
+  last_updated                DateTime?                    @db.Timestamp(6)
+  batch_job_instance          batch_job_instance           @relation(fields: [job_instance_id], references: [job_instance_id], onDelete: NoAction, onUpdate: NoAction, map: "job_inst_exec_fk")
+  batch_job_execution_context batch_job_execution_context?
+  batch_job_execution_params  batch_job_execution_params[] @ignore
+  batch_step_execution        batch_step_execution[]
+}
+
+model batch_job_execution_context {
+  job_execution_id    BigInt              @id
+  short_context       String              @db.VarChar(2500)
+  serialized_context  String?
+  batch_job_execution batch_job_execution @relation(fields: [job_execution_id], references: [job_execution_id], onDelete: NoAction, onUpdate: NoAction, map: "job_exec_ctx_fk")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model batch_job_execution_params {
+  job_execution_id    BigInt
+  parameter_name      String              @db.VarChar(100)
+  parameter_type      String              @db.VarChar(100)
+  parameter_value     String?             @db.VarChar(2500)
+  identifying         String              @db.Char(1)
+  batch_job_execution batch_job_execution @relation(fields: [job_execution_id], references: [job_execution_id], onDelete: NoAction, onUpdate: NoAction, map: "job_exec_params_fk")
+
+  @@ignore
+}
+
+model batch_job_instance {
+  job_instance_id     BigInt                @id
+  version             BigInt?
+  job_name            String                @db.VarChar(100)
+  job_key             String                @db.VarChar(32)
+  batch_job_execution batch_job_execution[]
+
+  @@unique([job_name, job_key], map: "job_inst_un")
+}
+
+model batch_step_execution {
+  step_execution_id            BigInt                        @id
+  version                      BigInt
+  step_name                    String                        @db.VarChar(100)
+  job_execution_id             BigInt
+  create_time                  DateTime                      @db.Timestamp(6)
+  start_time                   DateTime?                     @db.Timestamp(6)
+  end_time                     DateTime?                     @db.Timestamp(6)
+  status                       String?                       @db.VarChar(10)
+  commit_count                 BigInt?
+  read_count                   BigInt?
+  filter_count                 BigInt?
+  write_count                  BigInt?
+  read_skip_count              BigInt?
+  write_skip_count             BigInt?
+  process_skip_count           BigInt?
+  rollback_count               BigInt?
+  exit_code                    String?                       @db.VarChar(2500)
+  exit_message                 String?                       @db.VarChar(2500)
+  last_updated                 DateTime?                     @db.Timestamp(6)
+  batch_job_execution          batch_job_execution           @relation(fields: [job_execution_id], references: [job_execution_id], onDelete: NoAction, onUpdate: NoAction, map: "job_exec_step_fk")
+  batch_step_execution_context batch_step_execution_context?
+}
+
+model batch_step_execution_context {
+  step_execution_id    BigInt               @id
+  short_context        String               @db.VarChar(2500)
+  serialized_context   String?
+  batch_step_execution batch_step_execution @relation(fields: [step_execution_id], references: [step_execution_id], onDelete: NoAction, onUpdate: NoAction, map: "step_exec_ctx_fk")
 }

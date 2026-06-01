@@ -119,22 +119,25 @@ export class SyncService {
 
                 this.logger.log(`[SYNC_FOOTBALL] Processing ${matches.length} matches for ${league.name}`);
 
-                for (const m of matches) {
-                    await this.upsertMatch({
-                        external_api_id: `FB_${m.id}`,
-                        league_id: league.id,
-                        league_code: league.code,
-                        home_team_name: m.homeTeam.name,
-                        away_team_name: m.awayTeam.name,
-                        home_team_external_id: `FB_${m.homeTeam.id}`,
-                        away_team_external_id: `FB_${m.awayTeam.id}`,
-                        match_at: new Date(m.utcDate),
-                        status: this.mapFootballStatus(m.status),
-                        home_score: m.score.fullTime.home ?? 0,
-                        away_score: m.score.fullTime.away ?? 0,
-                        venue: m.venue,
-                    });
-                    totalCount++;
+                const chunks = this.chunkArray(matches, 30);
+                for (const chunk of chunks) {
+                    await Promise.all(chunk.map((m: any) =>
+                        this.upsertMatch({
+                            external_api_id: `FB_${m.id}`,
+                            league_id: league.id,
+                            league_code: league.code,
+                            home_team_name: m.homeTeam.name,
+                            away_team_name: m.awayTeam.name,
+                            home_team_external_id: `FB_${m.homeTeam.id}`,
+                            away_team_external_id: `FB_${m.awayTeam.id}`,
+                            match_at: new Date(m.utcDate),
+                            status: this.mapFootballStatus(m.status),
+                            home_score: m.score.fullTime.home ?? 0,
+                            away_score: m.score.fullTime.away ?? 0,
+                            venue: m.venue,
+                        })
+                    ));
+                    totalCount += chunk.length;
                 }
 
                 // 리그 간 처리 사이의 짧은 휴식 (가비지 컬렉션 및 API 부하 방지)
@@ -195,22 +198,25 @@ export class SyncService {
             if (!league) return 0;
 
             let count = 0;
-            for (const m of matches) {
-                await this.upsertMatch({
-                    external_api_id: `PS_${m.id}`,
-                    league_id: league.id,
-                    league_code: 'LCK',
-                    home_team_name: m.opponents[0]?.opponent.name,
-                    away_team_name: m.opponents[1]?.opponent.name,
-                    home_team_external_id: m.opponents[0] ? `PS_${m.opponents[0].opponent.id}` : undefined,
-                    away_team_external_id: m.opponents[1] ? `PS_${m.opponents[1].opponent.id}` : undefined,
-                    match_at: new Date(m.begin_at),
-                    status: this.mapPandaStatus(m.status),
-                    home_score: m.results[0]?.score ?? 0,
-                    away_score: m.results[1]?.score ?? 0,
-                    venue: m.league.name,
-                });
-                count++;
+            const chunks = this.chunkArray(matches, 30);
+            for (const chunk of chunks) {
+                await Promise.all(chunk.map(m =>
+                    this.upsertMatch({
+                        external_api_id: `PS_${m.id}`,
+                        league_id: league.id,
+                        league_code: 'LCK',
+                        home_team_name: m.opponents[0]?.opponent.name,
+                        away_team_name: m.opponents[1]?.opponent.name,
+                        home_team_external_id: m.opponents[0] ? `PS_${m.opponents[0].opponent.id}` : undefined,
+                        away_team_external_id: m.opponents[1] ? `PS_${m.opponents[1].opponent.id}` : undefined,
+                        match_at: new Date(m.begin_at),
+                        status: this.mapPandaStatus(m.status),
+                        home_score: m.results[0]?.score ?? 0,
+                        away_score: m.results[1]?.score ?? 0,
+                        venue: m.league.name,
+                    })
+                ));
+                count += chunk.length;
             }
             return count;
         } catch (error) {
@@ -249,34 +255,37 @@ export class SyncService {
 
             this.logger.log(`[SYNC_ESPN] Syncing ${events.length} events for ${sportCode} (${leagueTeamsCache.length} teams cached)...`);
 
-            for (const e of events) {
-                try {
-                    const competition = e.competitions[0];
-                    if (!competition) continue;
+            const chunks = this.chunkArray(events, 30);
+            for (const chunk of chunks) {
+                await Promise.all(chunk.map(async (e) => {
+                    try {
+                        const competition = e.competitions[0];
+                        if (!competition) return;
 
-                    const home = competition.competitors.find((c: any) => c.homeAway === 'home');
-                    const away = competition.competitors.find((c: any) => c.homeAway === 'away');
+                        const home = competition.competitors.find((c: any) => c.homeAway === 'home');
+                        const away = competition.competitors.find((c: any) => c.homeAway === 'away');
 
-                    if (!home || !away) continue;
+                        if (!home || !away) return;
 
-                    await this.upsertMatch({
-                        external_api_id: `ESPN_${e.id}`,
-                        league_id: league.id,
-                        league_code: sportCode,
-                        home_team_name: home.team.displayName,
-                        away_team_name: away.team.displayName,
-                        home_team_external_id: `ESPN_${sportCode}_${home.team.id}`,
-                        away_team_external_id: `ESPN_${sportCode}_${away.team.id}`,
-                        match_at: new Date(e.date),
-                        status: this.mapEspnStatus(e.status.type.name),
-                        home_score: parseInt(home.score) || 0,
-                        away_score: parseInt(away.score) || 0,
-                        venue: competition.venue?.fullName,
-                    }, leagueTeamsCache);
-                    totalCount++;
-                } catch (eventError) {
-                    this.logger.error(`[SYNC_ESPN] Failed to sync event ${e.id}: ${eventError.message}`);
-                }
+                        await this.upsertMatch({
+                            external_api_id: `ESPN_${e.id}`,
+                            league_id: league.id,
+                            league_code: sportCode,
+                            home_team_name: home.team.displayName,
+                            away_team_name: away.team.displayName,
+                            home_team_external_id: `ESPN_${sportCode}_${home.team.id}`,
+                            away_team_external_id: `ESPN_${sportCode}_${away.team.id}`,
+                            match_at: new Date(e.date),
+                            status: this.mapEspnStatus(e.status.type.name),
+                            home_score: parseInt(home.score) || 0,
+                            away_score: parseInt(away.score) || 0,
+                            venue: competition.venue?.fullName,
+                        }, leagueTeamsCache);
+                        totalCount++;
+                    } catch (eventError) {
+                        this.logger.error(`[SYNC_ESPN] Failed to sync event ${e.id}: ${eventError.message}`);
+                    }
+                }));
             }
             
             // 한 종목 처리가 끝나면 가비지 컬렉션을 위해 명시적으로 참조 해제 유도
@@ -670,5 +679,13 @@ export class SyncService {
         if (status === 'STATUS_IN_PROGRESS' || status === 'STATUS_HALFTIME' || status === 'STATUS_SUSPENDED') return 'ongoing';
         if (status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED') return 'cancelled';
         return 'scheduled';
+    }
+
+    private chunkArray<T>(array: T[], size: number): T[][] {
+        const chunked: T[][] = [];
+        for (let i = 0; i < array.length; i += size) {
+            chunked.push(array.slice(i, i + size));
+        }
+        return chunked;
     }
 }

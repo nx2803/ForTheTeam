@@ -31,7 +31,7 @@ export default function MatchListView({
                     </div>
                 ) : (
                     displayedEvents
-                        .filter(event => event.score === null)
+                        .filter(event => event.status !== 'finished')
                         .map((event, idx) => {
                             const dDay = isMounted ? getDDay(event.date) : null;
                             // 지난 경기는 D-Day 표시 안 함 (null)

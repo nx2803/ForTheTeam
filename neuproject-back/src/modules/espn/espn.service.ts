@@ -115,11 +115,12 @@ export class EspnService {
             
             if (calendar.length === 0) {
                 this.logger.warn(`No calendar found for ${config.name}`);
-                return baseResponse.data;
+                return { ...baseResponse.data, events: [], hasErrors: false };
             }
 
             const allEvents: any[] = [];
             const processedDates = new Set<string>();
+            let hasErrors = false;
 
             // 2. 캘린더 타입에 따른 수집 전략 분기
             if (calendarType === 'list') {
@@ -138,10 +139,11 @@ export class EspnService {
                     this.logger.log(`Processing ${config.name} calendar for ${yearEntry.label} (${entries.length} entries)`);
 
                     for (const entry of entries) {
-                        await this.fetchAndAddEvents(config, {
+                        const success = await this.fetchAndAddEvents(config, {
                             seasontype: yearEntry.value,
                             [sportCode === 'NFL' ? 'week' : 'dates']: entry.value
                         }, allEvents, processedDates);
+                        if (!success) hasErrors = true;
                     }
                 }
             } else {
@@ -179,10 +181,11 @@ export class EspnService {
                     // Regular Season (2)와 Postseason (3)을 모두 확실히 긁어옴
                     // dates와 seasontype을 같이 명시해야 누락이 없음
                     for (const type of [2, 3]) {
-                        await this.fetchAndAddEvents(config, { 
+                        const success = await this.fetchAndAddEvents(config, { 
                             dates: month,
                             seasontype: type 
                         }, allEvents, processedDates);
+                        if (!success) hasErrors = true;
                     }
                 }
             }
@@ -192,7 +195,7 @@ export class EspnService {
             );
 
             // 기존 호환성을 위해 마지막 응답 구조에 전체 이벤트만 담아서 반환
-            return { ...baseResponse.data, events: allEvents };
+            return { ...baseResponse.data, events: allEvents, hasErrors };
         } catch (error: any) {
             this.logger.error(
                 `Failed to fetch ${config.name} season schedule: ${error.message}`,
@@ -209,7 +212,7 @@ export class EspnService {
         params: Record<string, any>,
         allEvents: any[],
         processedDates: Set<string>
-    ) {
+    ): Promise<boolean> {
         try {
             const finalParams = { limit: 1000, ...params };
             const response = await firstValueFrom(
@@ -237,8 +240,10 @@ export class EspnService {
 
             // API 부하 방지
             await new Promise(resolve => setTimeout(resolve, 50));
+            return true;
         } catch (error: any) {
             this.logger.warn(`Failed to fetch for ${config.name} with params ${JSON.stringify(params)}: ${error.message}`);
+            return false;
         }
     }
 
@@ -255,7 +260,7 @@ export class EspnService {
                 results[code] = await this.getSeasonSchedule(code);
             } catch (error: any) {
                 this.logger.error(`Failed to fetch ${code} season schedule: ${error.message}`);
-                results[code] = { error: error.message, events: [] };
+                results[code] = { error: error.message, events: [], hasErrors: true };
             }
             // 각 종목 처리 후 잠시 대기 (GC 유도 및 API 부하 분산)
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -269,19 +274,20 @@ export class EspnService {
      * 각 스포츠의 이벤트를 메모리에 전부 쌓지 않고 즉시 콜백으로 전달
      */
     async processAllSportsSchedule(
-        callback: (sportCode: string, events: any[]) => Promise<void>
+        callback: (sportCode: string, events: any[], hasErrors: boolean) => Promise<void>
     ) {
         for (const code of Object.keys(SPORTS) as SportCode[]) {
             try {
                 this.logger.log(`Triggering full season sync for ${code}...`);
                 const data = await this.getSeasonSchedule(code);
                 const events = data.events || [];
-                await callback(code, events);
+                const hasErrors = data.hasErrors || false;
+                await callback(code, events, hasErrors);
                 // 처리 완료 후 메모리 해제를 위한 대기
                 await new Promise(resolve => setTimeout(resolve, 500));
             } catch (error: any) {
                 this.logger.error(`Failed to process ${code} season schedule: ${error.message}`);
-                await callback(code, []);
+                await callback(code, [], true);
             }
         }
     }

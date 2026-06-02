@@ -231,8 +231,8 @@ export class SyncService {
     private async syncEspn() {
         let totalCount = 0;
 
-        await this.espnService.processAllSportsSchedule(async (sportCode, events) => {
-            this.logger.log(`[SYNC_ESPN] Processing ${events.length} total events for ${sportCode}`);
+        await this.espnService.processAllSportsSchedule(async (sportCode, events, hasErrors) => {
+            this.logger.log(`[SYNC_ESPN] Processing ${events.length} total events for ${sportCode} (hasErrors: ${hasErrors})`);
 
             if (events.length === 0) {
                 this.logger.warn(`[SYNC_ESPN] No events found to sync for ${sportCode}`);
@@ -286,6 +286,65 @@ export class SyncService {
                         this.logger.error(`[SYNC_ESPN] Failed to sync event ${e.id}: ${eventError.message}`);
                     }
                 }));
+            }
+
+            // 2. 취소된 경기 자동 감지 로직 (API 조회가 에러 없이 완료되었을 때만 처리)
+            if (!hasErrors) {
+                const apiMatchIds = new Set<string>();
+                for (const e of events) {
+                    if (e && e.id) {
+                        apiMatchIds.add(`ESPN_${e.id}`);
+                    }
+                }
+
+                try {
+                    // DB에서 이 리그의 scheduled 또는 ongoing 상태인 경기 조회
+                    const dbScheduledMatches = await this.prisma.matches.findMany({
+                        where: {
+                            league_id: league.id,
+                            status: { in: ['scheduled', 'ongoing'] }
+                        },
+                        select: {
+                            id: true,
+                            external_api_id: true,
+                            home_team_name: true,
+                            away_team_name: true,
+                            match_at: true
+                        }
+                    });
+
+                    let cancelledCount = 0;
+                    for (const dbMatch of dbScheduledMatches) {
+                        // DB에 있는 경기가 API 응답에 없고, ESPN 경기인 경우에만 취소 처리
+                        if (dbMatch.external_api_id.startsWith('ESPN_') && !apiMatchIds.has(dbMatch.external_api_id)) {
+                            await this.prisma.matches.update({
+                                where: { id: dbMatch.id },
+                                data: {
+                                    status: 'cancelled',
+                                    updated_at: new Date()
+                                }
+                            });
+                            this.logger.log(
+                                `[SYNC_ESPN] Cancelled obsolete match: ${dbMatch.home_team_name} vs ${dbMatch.away_team_name} at ${dbMatch.match_at.toISOString()} (${dbMatch.external_api_id})`
+                            );
+                            cancelledCount++;
+                        }
+                    }
+
+                    if (cancelledCount > 0) {
+                        this.logger.log(
+                            `[SYNC_ESPN] Automatically cancelled ${cancelledCount} obsolete matches for ${sportCode}`
+                        );
+                    }
+                } catch (cancelError: any) {
+                    this.logger.error(
+                        `[SYNC_ESPN] Failed to check and cancel obsolete matches for ${sportCode}: ${cancelError.message}`
+                    );
+                }
+            } else {
+                this.logger.warn(
+                    `[SYNC_ESPN] Skipped cancelling obsolete matches for ${sportCode} due to upstream API fetch errors.`
+                );
             }
             
             // 한 종목 처리가 끝나면 가비지 컬렉션을 위해 명시적으로 참조 해제 유도

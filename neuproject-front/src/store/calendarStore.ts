@@ -35,6 +35,7 @@ export const useCalendarStore = create<CalendarState>()(
         }),
         {
             name: 'calendar-storage',
+            partialize: (state) => ({ viewMode: state.viewMode }),
         }
     )
 );

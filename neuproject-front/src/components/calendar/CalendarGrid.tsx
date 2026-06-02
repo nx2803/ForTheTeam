@@ -76,9 +76,10 @@ const ScrollableEventList = React.memo(({ events }: ScrollableEventListProps) =>
                     const isRace = ev.type === 'race';
                     const isFinished = ev.score !== null && ev.score !== undefined;
 
-                    // 응원팀 경기 결과 계산
+                    // 응원팀 경기 결과 계산 (경기가 최종 종료되었을 때만 계산)
                     let result: 'win' | 'loss' | 'draw' | 'none' = 'none';
-                    if (isFinished && !isRace) {
+                    const isEnded = ev.status === 'finished';
+                    if (isEnded && !isRace) {
                         const [homeScore, awayScore] = ev.score.split(':').map(Number);
                         const homeIsMyTeam = myTeams.some(t => t.id === ev.teamId);
                         const awayIsMyTeam = myTeams.some(t => t.id === ev.awayTeamId);

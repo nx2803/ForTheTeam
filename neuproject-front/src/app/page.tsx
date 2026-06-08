@@ -1,7 +1,7 @@
 // src/app/page.tsx
 'use client';
 
-import { useEffect, Suspense, useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { motion } from 'framer-motion';
 import Header from "@/components/layout/Header";
 import MainCalendar from "@/components/calendar/MainCalendar";
@@ -11,7 +11,6 @@ import Ticker from "@/components/layout/Ticker";
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import { useTeamStore } from '@/store/teamStore';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 export default function Home() {
   const { user } = useAuth();
@@ -69,15 +68,9 @@ export default function Home() {
 
       {/* 3. Main Content Area */}
       <div className="flex-1 w-full min-h-0 mx-auto p-2 md:p-6 pt-28 md:pt-32 pb-20 md:pb-6 relative z-10 flex flex-col justify-stretch">
-        <Suspense fallback={
-          <div className="flex-1 flex items-center justify-center bg-black">
-            <LoadingSpinner size="xl" text="LOADING SPORTS DATA..." />
-          </div>
-        }>
-          <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">
-            <MainCalendar isPending={isPending} startTransition={startTransition} />
-          </div>
-        </Suspense>
+        <div className="flex-1 min-h-0 shadow-2xl overflow-hidden flex flex-col">
+          <MainCalendar isPending={isPending} startTransition={startTransition} />
+        </div>
       </div>
 
       {/* 4. Team Selector (Bottom Dock) */}

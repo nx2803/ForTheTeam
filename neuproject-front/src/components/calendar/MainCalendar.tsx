@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { matchService } from '@/lib/services/matchService';
@@ -14,38 +14,89 @@ import apiClient from '@/lib/apiClient';
 import CalendarHeader from './CalendarHeader';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import EmptyGuideOverlay from './EmptyGuideOverlay';
+import MainCalendarSkeleton from '@/components/ui/Skeletons';
 
 import CalendarGrid from './CalendarGrid';
 import MatchListView from './MatchListView';
 import StandingsView from './StandingsView';
 
-
 import { useTeamStore } from '@/store/teamStore';
 import { useCalendarStore } from '@/store/calendarStore';
 
-interface MainCalendarProps {
-    isPending?: boolean;
-    startTransition?: (callback: () => void) => void;
+// [New Tech] Error Boundary to handle suspense query errors locally
+class QueryErrorBoundary extends React.Component<
+    { children: React.ReactNode; fallback: React.ReactNode },
+    { hasError: boolean }
+> {
+    constructor(props: any) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: any, errorInfo: any) {
+        console.error("QueryErrorBoundary caught an error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return this.props.fallback;
+        }
+        return this.props.children;
+    }
 }
 
-export default function MainCalendar({ isPending, startTransition }: MainCalendarProps) {
-    const { myTeams } = useTeamStore();
-    const { currentDate: currentDateStr, viewMode, setViewMode, nextMonth, prevMonth } = useCalendarStore();
-    const currentDate = new Date(currentDateStr);
+interface MatchesViewProps {
+    currentDate: Date;
+    viewMode: 'calendar' | 'list';
+}
 
-    const { mainTeam, setMainTeam, themeColors } = useTheme();
+// Sub-component that consumes useMatches query and suspends locally
+function MatchesView({ currentDate, viewMode }: MatchesViewProps) {
+    const { myTeams } = useTeamStore();
+    const { mainTeam } = useTheme();
     const selectedTeamId = mainTeam?.id || null;
 
-    const client = useQueryClient();
-    const { isLoggedIn, user } = useAuth();
-
-    // useMatches 훅 호출 (Suspense 대응)
-    const { data: displayedEvents = [], isError } = useMatches(
+    const { data: displayedEvents = [] } = useMatches(
         currentDate.getFullYear(),
         currentDate.getMonth() + 1,
         myTeams,
         selectedTeamId
     );
+
+    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+
+    if (viewMode === 'calendar') {
+        return (
+            <CalendarGrid
+                currentDate={currentDate}
+                displayedEvents={displayedEvents}
+                startDay={startDay}
+                daysInMonth={daysInMonth}
+            />
+        );
+    }
+
+    return (
+        <MatchListView
+            displayedEvents={displayedEvents}
+            getDDay={getDDay}
+        />
+    );
+}
+
+export default function MainCalendar({ isPending, startTransition }: MainCalendarProps) {
+    const { myTeams } = useTeamStore();
+    const { currentDate: currentDateStr, viewMode } = useCalendarStore();
+    const currentDate = new Date(currentDateStr);
+
+    const { themeColors } = useTheme();
+    const client = useQueryClient();
+    const { isLoggedIn, user } = useAuth();
 
     // [New Tech] Prefetch next/prev months to make transitions instant
     React.useEffect(() => {
@@ -87,19 +138,6 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
         });
     }, [currentDate, client, user?.uid, isLoggedIn, myTeams]);
 
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    const startDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-
-    if (isError) {
-        return (
-            <div className="w-full h-full flex items-center justify-center bg-[#0a0a0a]">
-                <div className="font-oswald text-2xl italic font-black text-sport-red tracking-tighter">
-                    FAILED TO LOAD DATA
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="w-full h-full flex flex-col p-2 md:p-4 text-zinc-300">
             <CalendarHeader isPending={isPending} startTransition={startTransition} />
@@ -120,21 +158,28 @@ export default function MainCalendar({ isPending, startTransition }: MainCalenda
                         />
                     </div>
                 )}
-                {viewMode === 'calendar' ? (
-                    <CalendarGrid
-                        currentDate={currentDate}
-                        displayedEvents={displayedEvents}
-                        startDay={startDay}
-                        daysInMonth={daysInMonth}
-                    />
-                ) : viewMode === 'list' ? (
-                    <MatchListView
-                        displayedEvents={displayedEvents}
-                        getDDay={getDDay}
-                    />
-                ) : (
-                    <StandingsView />
-                )}
+
+                {/* Inner Suspense and Error Boundary so outer frame doesn't drop */}
+                <QueryErrorBoundary
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center bg-[#0a0a0a]">
+                            <div className="font-oswald text-2xl italic font-black text-sport-red tracking-tighter">
+                                FAILED TO LOAD DATA
+                            </div>
+                        </div>
+                    }
+                >
+                    <Suspense fallback={<MainCalendarSkeleton />}>
+                        {viewMode === 'calendar' || viewMode === 'list' ? (
+                            <MatchesView
+                                currentDate={currentDate}
+                                viewMode={viewMode}
+                            />
+                        ) : (
+                            <StandingsView />
+                        )}
+                    </Suspense>
+                </QueryErrorBoundary>
 
                 {/* Guide Overlay for new users */}
                 {myTeams.length === 0 && <EmptyGuideOverlay />}

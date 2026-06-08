@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '@/hooks/useTheme';
 
 interface AboutModalProps {
     isOpen: boolean;
@@ -9,6 +10,7 @@ interface AboutModalProps {
 }
 
 export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
+    const { themeColors } = useTheme();
     return (
         <AnimatePresence>
             {isOpen && (
@@ -54,43 +56,50 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
                                 <section>
                                     <h2 className="text-white font-bold text-lg uppercase mb-3 flex items-center gap-2">
                                         <span className="w-2 h-6 bg-sport-red block"></span>
-                                        경기 일정 확인
+                                        국내외 스포츠 일정 제공
                                     </h2>
                                     <p className="leading-relaxed text-sm">
-                                        NBA, NHL, MLB, KBO 등 다양한 스포츠 리그의 경기 일정을 실시간으로 확인할 수 있습니다.
-                                        상단의 큰 월(Month) 표시 옆의 화살표를 클릭하여 다른 달의 일정을 찾아보세요.
+                                        유럽 4대 축구 리그(EPL, 라리가, 분데스리가, 세리에 A)와 LCK(e스포츠), NBA, MLB, NHL, KBO 등 다양한 종목의 경기 일정을 한곳에서 제공합니다. 상단의 월 표시 옆 화살표를 눌러 월별 경기 일정을 이동해보세요.
                                     </p>
                                 </section>
 
                                 <section>
                                     <h2 className="text-white font-bold text-lg uppercase mb-3 flex items-center gap-2">
                                         <span className="w-2 h-6 bg-sport-red block"></span>
-                                        팀 커스터마이징
+                                        실시간 스코어 동기화
                                     </h2>
                                     <p className="leading-relaxed text-sm">
-                                        페이지 하단의 <span className="text-white font-bold mx-1">'CUSTOMIZE TEAM'</span> 버튼을 클릭하여 관심 있는 리그와 팀을 선택하고 나만의 대시보드를 구성할 수 있습니다.
+                                        경기가 진행 중(`ongoing`)이거나 끝났을 때 웹소켓을 통해 스코어와 경기 상태가 실시간으로 자동 업데이트됩니다. 화면 새로고침 없이 가장 빠르고 정확한 스코어보드를 체감할 수 있습니다.
                                     </p>
                                 </section>
 
                                 <section>
                                     <h2 className="text-white font-bold text-lg uppercase mb-3 flex items-center gap-2">
                                         <span className="w-2 h-6 bg-sport-red block"></span>
-                                        메인 팀 설정 및 필터링
+                                        지능형 팀 테마 엔진
                                     </h2>
                                     <p className="leading-relaxed text-sm">
-                                        상단 중앙의 팀 로고들을 클릭하여 특정 팀의 경기만 필터링하여 볼 수 있습니다.
-                                        <span className="text-white font-bold mx-1">'SORT'</span> 버튼을 눌러 팔로우한 팀들의 순서를 변경하거나 편집할 수 있습니다.
-                                        필터를 해제하려면 로고 왼쪽의 <span className="text-white font-bold mx-1">'ALL'</span> 버튼을 클릭하세요.
+                                        팔로우한 팀 로고를 클릭하여 메인 팀으로 지정하면 사이트 전체가 해당 팀의 고유 컬러 브랜드 테마로 동적 변경됩니다. 특히 가독성 보정을 위한 대비 색상 알고리즘이 내장되어 어떠한 색상 조합에서도 텍스트가 명확하게 식별됩니다.
                                     </p>
                                 </section>
 
                                 <section>
                                     <h2 className="text-white font-bold text-lg uppercase mb-3 flex items-center gap-2">
                                         <span className="w-2 h-6 bg-sport-red block"></span>
-                                        뷰 모드 전환
+                                        팀 설정 및 클라우드 동기화
                                     </h2>
                                     <p className="leading-relaxed text-sm">
-                                        좌측 상단의 전환 스위치를 사용하여 <span className="text-white font-bold mx-1">달력</span> 뷰와 <span className="text-white font-bold mx-1">D-Day</span> 뷰 사이를 자유롭게 전환할 수 있습니다.
+                                        하단의 <span className="text-white font-bold mx-1">'CUSTOMIZE TEAM'</span> 버튼을 통해 응원 팀을 선택할 수 있으며, <span className="text-white font-bold mx-1">'SORT'</span>를 눌러 순서를 바꿀 수 있습니다. 회원가입 시 선택된 팀 목록이 클라우드 계정에 연동되어 보존됩니다.
+                                    </p>
+                                </section>
+
+                                <section>
+                                    <h2 className="text-white font-bold text-lg uppercase mb-3 flex items-center gap-2">
+                                        <span className="w-2 h-6 bg-sport-red block"></span>
+                                        3가지 하이브리드 뷰 모드
+                                    </h2>
+                                    <p className="leading-relaxed text-sm">
+                                        직관적인 월별 <span className="text-white font-bold mx-1">달력(Calendar)</span> 뷰, 직근 경기와 잔여 일정을 모아보는 <span className="text-white font-bold mx-1">D-Day</span> 뷰, 그리고 현재 시즌 상황을 빠르게 점검할 수 있는 <span className="text-white font-bold mx-1">순위표(Rank)</span> 뷰를 자유롭게 넘나들 수 있습니다.
                                     </p>
                                 </section>
 
@@ -103,9 +112,15 @@ export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
 
                             <button
                                 onClick={onClose}
-                                className="w-full bg-white text-black font-black font-oswald text-xl uppercase py-3 mt-8 hover:bg-sport-red hover:text-white transition-all duration-300"
+                                className="w-full font-black font-oswald text-xl uppercase py-3 mt-8 transition-all duration-300 relative group overflow-hidden active:scale-95 border"
+                                style={{
+                                    backgroundColor: themeColors.primary,
+                                    color: themeColors.primaryText,
+                                    borderColor: themeColors.secondary + '40'
+                                }}
                             >
-                                GOT IT
+                                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
+                                <span className="relative">GOT IT</span>
                             </button>
                         </motion.div>
                     </motion.div>

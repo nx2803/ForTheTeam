@@ -89,6 +89,11 @@ function MatchesView({ currentDate, viewMode }: MatchesViewProps) {
     );
 }
 
+interface MainCalendarProps {
+    isPending: boolean;
+    startTransition: React.TransitionStartFunction;
+}
+
 export default function MainCalendar({ isPending, startTransition }: MainCalendarProps) {
     const { myTeams } = useTeamStore();
     const { currentDate: currentDateStr, viewMode } = useCalendarStore();
